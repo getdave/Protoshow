@@ -1,0 +1,165 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-size: 12px;
+	background-color: #f7f7f7;
+}
+
+
+
+.proto-show {
+	position: relative;
+	width: 900px;
+	height: 300px;
+	margin: 50px;
+	font-family: Arial, sans-serif;
+}
+
+.proto-show ul.show {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	height: 300px;
+	width: 900px;
+	position: relative;
+-moz-box-shadow:0 0 10px #333333;
+	}
+
+
+.slide {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+li.active-slide {
+	z-index: 100;
+}
+
+.proto-navigation {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	position: absolute;
+	right: 5px;
+	bottom: -25px;
+	z-index: 200;
+}
+
+.proto-navigation li {
+	float: left;
+	margin-right: 10px;
+}
+
+.proto-navigation li a:link,
+.proto-navigation li a:visited {
+	display: block;
+	width: 8px;
+	height: 8px;
+	text-decoration: none;
+	background-color: rgba(255,255,255,0.5);    /*#E4E5E6;*/
+	border: 1px solid #090809;
+	color: #666;
+	text-indent: -9999px;
+	overflow: hidden;
+	-moz-border-radius: 30px;
+	-webkit-border-radius: 30px;
+	border-radius: 30px;
+}
+
+.proto-navigation li a:hover,
+.proto-navigation li a:focus {
+	background-color: #fff;
+	border-color: #000;
+}
+
+
+.proto-navigation li.current-slide a:link,
+.proto-navigation li.current-slide a:visited {
+	background-color: rgba(30,30,30,0.9);/*#323232;*/
+
+}
+
+
+
+
+
+
+.proto-controls  {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+
+}
+
+.proto-controls .forward,
+.proto-controls .backward,
+.proto-controls .start-stop {
+	z-index: 200;
+	float: left;
+	margin: 10px 10px 0 0;
+}
+
+.proto-controls .start-stop {
+	margin-top: 10px;
+
+}
+
+
+
+
+
+.proto-controls a:link,
+.proto-controls a:visited {
+	display: inline-block;
+	background-color: #090809;
+	background-image: -moz-linear-gradient(
+		center top,
+		rgb(123,125,130) 2%,
+		rgb(75,80,88) 3%,
+		rgb(42,45,50) 100%
+	);
+	color: #fff;
+	padding: 5px 10px;
+	border: 1px solid #090809;
+	-moz-border-radius: 20px;
+	-webkit-border-radius: 20px;
+	border-radius: 20px;
+	text-decoration: none;
+	text-align: center;
+	width: 60px;
+}
+
+.proto-controls a:hover,
+.proto-controls a:focus { 
+	background-image: -moz-linear-gradient(
+		center bottom,
+		rgb(42,45,50) 100%,
+		rgb(75,80,88) 90%,
+		rgb(123,125,130) 20%
+	);
+	color: #e1e1e1;
+}
+
+
+.slide-caption {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	width: 880px;
+	background-color: rgba(0,0,0,.5);
+	color: #fff;
+	z-index: 200;
+	padding: 10px;
+}
+
+
+.proto-timer {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 9999;
+}
