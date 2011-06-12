@@ -1,6 +1,6 @@
 /*  ProtoShow JavaScript slide show, 
- *	v 1.0 - March 18, 2010
- *  Copyright(c) 2010 David Smith (web: http://www.aheadcreative.com; twitter: @get_dave)
+ *	v 0.6 (beta) - 12/06/11
+ *  Copyright(c) 2011 David Smith (web: http://www.aheadcreative.com; twitter: @get_dave)
  *
  *  This work is licenced under the Creative Commons Attribution-No Derivative Works 3.0 Unported License. 
  *	http://creativecommons.org/licenses/by-nd/3.0/ 
