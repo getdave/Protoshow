@@ -31,9 +31,10 @@ var protoShow = Class.create({
 			buildNavigation		: true,
 			navElements			: ".proto-navigation li",
 			buildControls		: false,
-			stopOnHover			: false,
+			stopOnHover			: true,
 			captions			: false,
-			captionsElement		: '.slide-caption'
+			captionsElement		: '.slide-caption',
+			timer				: true
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
@@ -107,7 +108,9 @@ var protoShow = Class.create({
 		this.runShow = setTimeout(this.mode.bind(this),this.interval);		// we set the Show running but this doesn't control the looping
 		this.isPlaying = true;
 		this.updateControls(true);
-		this.runTimer();
+		if (this.timer) {
+			this.runTimer();
+		}
 	},		
 	
 	
@@ -115,7 +118,6 @@ var protoShow = Class.create({
 		// Totally stops the show  - only to be used for stopping, not clearing the timer (see this.clearTimer)
 		document.fire("protoShow:stopped");		
 		this.clearTimer();
-		this.stopTimer();
 		this.isPlaying = false;		
 		this.updateControls(false);		
 	},
@@ -355,6 +357,7 @@ var protoShow = Class.create({
 	
 	
 	pauseOnHover: function() {
+
 		if (this.stopOnHover) {
 			// If true then when mouse enters the show *container* stop the show and when leaves then restart
 			var hoverDelay;
@@ -408,38 +411,43 @@ var protoShow = Class.create({
 	setupTimer: function() {	
 		/* Create timer <canvas> element, get 2D Context and insert into DOM */
 		this.slideTimer = document.createElement('canvas');
-		this.slideTimer.writeAttribute('class','proto-timer');	
-		this.slideTimer.width = 30;
-		this.slideTimer.height = 30;
-		this.element.insert(this.slideTimer,'bottom');		
-		this.timerCtx = this.slideTimer.getContext('2d');
+		if (this.slideTimer.getContext && this.slideTimer.getContext('2d')) { // test for Canvas support
+			this.slideTimer.writeAttribute('class','proto-timer');	
+			this.slideTimer.width = 30;
+			this.slideTimer.height = 30;
+			this.element.insert(this.slideTimer,'bottom');		
+			this.timerCtx = this.slideTimer.getContext('2d');
+		} else {
+			this.timer = false;
+		}
 	},
 	
 	
 	runTimer: function() {
-		
-	// use Epoch time to ensure code executes in time specified
-	// borrowed from Emile JS http://script.aculo.us/downloads/emile.pdf
-		var start = (new Date).getTime();
-		var duration = this.interval;
-		var finish	= start+duration;
-		var angleStart = 0;
-		
-		var timerInternal = setInterval(function(){
-			var time = (new Date).getTime();
-			var pos  = time>finish ? 1 : (time-start)/duration;			
+		if (this.timer) {
+			// use Epoch time to ensure code executes in time specified
+			// borrowed from Emile JS http://script.aculo.us/downloads/emile.pdf
+			var start = (new Date).getTime();
+			var duration = this.interval;
+			var finish	= start+duration;
+			var angleStart = 0;
 			
-			if (1) {
-			//console.log(angleStart);
-			this.drawArc(0,Math.floor(360*pos),'rgba(255,255,255,1)',true);
-			}
-			if(time>finish) {
+			var timerInternal = setInterval(function(){
+				var time = (new Date).getTime();
+				var pos  = time>finish ? 1 : (time-start)/duration;			
 				
-				this.resetTimer();
-				clearInterval(timerInternal);
-			}
-			
-		}.bind(this),10);	
+				if (this.isPlaying) {
+				//console.log(angleStart);
+				this.drawArc(0,Math.floor(360*pos),'rgba(255,255,255,1)',true);
+				}
+				if(time>finish || (!this.isPlaying)) {
+					
+					this.resetTimer();
+					clearInterval(timerInternal);
+				}
+				
+			}.bind(this),10);	
+		}
 	},
 	
 	
@@ -453,7 +461,6 @@ var protoShow = Class.create({
 	drawArc: function(startAngle,endAngle,strokeStyle,shadow) {
 		
 
-		console.info(endAngle);
 		this.resetTimer();
 		
 		this.drawingArc = true;
@@ -463,11 +470,6 @@ var protoShow = Class.create({
 		ctx.beginPath();		
 		ctx.strokeStyle = strokeStyle;
 		ctx.lineWidth = 3;	
-		/*if (shadow) {
-		ctx.shadowBlur = .5;		
-		ctx.shadowColor = 'rgba(255,255,255,0.5)';
-		}*/
-		//ctx.lineCap = "round";
 		ctx.arc(15,15,10, (Math.PI/180)*(startAngle-90),(Math.PI/180)*(endAngle-90), false); 
 		ctx.stroke();	
 		this.drawingArc = false;		
