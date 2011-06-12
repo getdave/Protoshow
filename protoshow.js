@@ -62,6 +62,7 @@ var protoShow = Class.create({
 		this.captions			=	this.options.captions;
 		this.captionsElement	=	$$(this.options.captionsElement)[0];
 		this.navElements		=	this.options.navElements;
+		this.timer				=	this.options.timer;
 		
 		
 		
@@ -184,6 +185,7 @@ var protoShow = Class.create({
 	
 	goToSlide: function(slide) {
 		this.clearTimer();
+	
 		var storeTransition = this.transitionTime;
 		this.transitionTime	= this.manTransitionTime;
 		var targetSlide = slide;
@@ -252,7 +254,7 @@ var protoShow = Class.create({
 		$(next).addClassName('active-slide');
 		this.element.removeClassName("animating");
 		this.animating = false;		// Resets the "animating" flag
-		if ( (!this.noRestart) && (this.isPlaying != false) ) {		// test to check show has not been explicitly "Stopped"
+		if ( (!this.noRestart) && (this.isPlaying !== false) ) {		// test to check show has not been explicitly "Stopped"
 			this.play();	// loop the show again
 		}
 		
@@ -436,12 +438,10 @@ var protoShow = Class.create({
 				var time = (new Date).getTime();
 				var pos  = time>finish ? 1 : (time-start)/duration;			
 				
-				if (this.isPlaying) {
-				//console.log(angleStart);
-				this.drawArc(0,Math.floor(360*pos),'rgba(255,255,255,1)',true);
+				if (this.isPlaying) {				
+					this.drawArc(0,Math.floor(360*pos),'rgba(255,255,255,1)',true);
 				}
-				if(time>finish || (!this.isPlaying)) {
-					
+				if(this.animating || time>finish) {	// if we are animating or we are finished then stop and clear the timer			
 					this.resetTimer();
 					clearInterval(timerInternal);
 				}
