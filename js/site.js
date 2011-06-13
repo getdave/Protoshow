@@ -2,7 +2,7 @@
 	
 	var primaryShow = new protoShow('myshow1',{
 		interval	:	5000,
-		captions	: 	true,
+		captions	: 	true
 	});
 	
 });
