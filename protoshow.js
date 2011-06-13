@@ -119,6 +119,7 @@ var protoShow = Class.create({
 		// Totally stops the show  - only to be used for stopping, not clearing the timer (see this.clearTimer)
 		document.fire("protoShow:stopped");		
 		this.clearTimer();
+		this.stopTimer();
 		this.isPlaying = false;		
 		this.updateControls(false);		
 	},
@@ -442,8 +443,8 @@ var protoShow = Class.create({
 					this.drawArc(0,Math.floor(360*pos),'rgba(255,255,255,1)',true);
 				}
 				if(this.animating || time>finish) {	// if we are animating or we are finished then stop and clear the timer			
-					this.resetTimer();
-					clearInterval(timerInternal);
+					this.stopTimer(timerInternal);
+
 				}
 				
 			}.bind(this),10);	
@@ -473,6 +474,12 @@ var protoShow = Class.create({
 		ctx.arc(15,15,10, (Math.PI/180)*(startAngle-90),(Math.PI/180)*(endAngle-90), false); 
 		ctx.stroke();	
 		this.drawingArc = false;		
+	},
+
+	stopTimer: function(timerInternal) {
+		this.resetTimer();
+		clearInterval(timerInternal);
+		
 	}
 	
 	
