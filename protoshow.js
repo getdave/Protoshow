@@ -20,7 +20,7 @@ var protoShow = Class.create({
 		
 		// Default options
 		this.options = Object.extend({
-			selector			: ".slide",
+			selector			: ".slide",					
 			interval			: 3000,
 			initialSlide		: 1,
 			mode				: 'forward',
@@ -365,7 +365,7 @@ var protoShow = Class.create({
 	
 	pauseOnHover: function() {
 
-		if (this.stopOnHover) {
+		if (this.stopOnHover && (Event.observe(window,'mouseenter',function(){return;}) !== "undefined")  ) {
 			// If true then when mouse enters the show *container* stop the show and when leaves then restart
 			var hoverDelay;
 			this.element.down('.show').observe('mouseenter',function() {
