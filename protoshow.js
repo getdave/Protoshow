@@ -1,12 +1,13 @@
 /*  ProtoShow JavaScript slide show, 
- *	v 0.6 (beta) - 12/06/11
+ *	v 0.6 (alpha) - 12/06/11
  *  Copyright(c) 2011 David Smith (web: http://www.aheadcreative.com; twitter: @get_dave)
  *
  *  This work is licenced under the Creative Commons Attribution-No Derivative Works 3.0 Unported License. 
  *	http://creativecommons.org/licenses/by-nd/3.0/ 
  *  
  *	For more information on this project visit:
- *	http://www.deepbluesky.com/protoshow/
+ * 	http://www.protoshow.net
+ *	http://www.deepbluesky.com
  *
  *--------------------------------------------------------------------------*/
 
