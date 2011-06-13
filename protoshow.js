@@ -10,6 +10,9 @@
  *
  *--------------------------------------------------------------------------*/
 
+if(typeof Prototype=='undefined' || typeof Scriptaculous =='undefined') {
+	throw("Protoshow.js requires the Prototype & Scriptaculous  JavaScript framework");
+} else {
 
 var protoShow = Class.create({
 	initialize: function(element,options) {
@@ -485,6 +488,7 @@ var protoShow = Class.create({
 	
 	
 });
+}
 
 
 
