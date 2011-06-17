@@ -11,6 +11,9 @@
  *
  *--------------------------------------------------------------------------*/
 
+
+
+
 if(typeof Prototype=='undefined' || typeof Scriptaculous =='undefined') {
 	throw("Protoshow.js requires the Prototype & Scriptaculous  JavaScript framework");
 } else {
@@ -120,7 +123,7 @@ var protoShow = Class.create({
 	
 	
 	stop: function() {
-
+		//console.info("stopping");
 		// Totally stops the show  - only to be used for stopping, not clearing the timer (see this.clearTimer)
 		document.fire("protoShow:stopped");	
 		this.isPlaying = false;		
@@ -365,17 +368,20 @@ var protoShow = Class.create({
 	
 	
 	pauseOnHover: function() {
-
+		var _this = this;
 		if (this.stopOnHover) {
 			// If true then when mouse enters the show *container* stop the show and when leaves then restart
-			var hoverDelay;
+			
+			
 			this.element.down('.show').observe('mouseenter',function() {
-				hoverDelay = setTimeout(this.stop.bind(this),1000);		// wait a short time before triggering stop();
-			}.bind(this)).observe('mouseleave',function() {
-				if ( this.autoRestart) {
-					// Trigger the start of the slideshow
-					clearTimeout(hoverDelay);
-					this.play();
+				_this.stop();
+
+				//console.log("Hovered");
+			}).observe('mouseleave',function() {
+				if ( _this.autoRestart) {
+					// Trigger the start of the slideshow					
+					_this.play();
+					//console.log("Unhovered");
 				}	
 			}.bind(this));
 		}
@@ -446,9 +452,9 @@ var protoShow = Class.create({
 			
 				if (this.isPlaying) {				
 					this.drawArc(0,Math.floor((360*pos)),'rgba(255,255,255,1)',true);
-
 				}
-				if(this.animating || time>finish) {	// if we are animating or we are finished then stop and clear the timer			
+
+				if((!this.isPlaying) || this.animating || time>finish) {	// if we are stopped or animating or we are finished then stop and clear the timer			
 					pe.stop();
 					//console.log(this.slideTimer);
 					this.slideTimer.width = this.slideTimer.width;
@@ -460,7 +466,7 @@ var protoShow = Class.create({
 	
 	
 	resetTimer: function() {
-
+		//console.log("Resetting timer");
 		this.slideTimer.width = this.slideTimer.width;         // clears the canvas 	
 		
 	},
@@ -481,6 +487,7 @@ var protoShow = Class.create({
 
 	stopTimer: function(timerInternal) {	
 		this.resetTimer();
+		//console.log(timerInternal);
 		clearInterval(timerInternal);
 		
 	}
