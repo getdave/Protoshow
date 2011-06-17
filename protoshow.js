@@ -109,7 +109,7 @@ var protoShow = Class.create({
 		if(this.runShow) {
 			this.clearTimer();	// clears any left over setTimeout in global
 		}	
-		//console.info("Playing");		
+				
 		this.runShow = setTimeout(this.mode.bind(this),this.interval);		// we set the Show running but this doesn't control the looping
 		this.isPlaying = true;
 		this.updateControls(true);
@@ -120,11 +120,12 @@ var protoShow = Class.create({
 	
 	
 	stop: function() {
+
 		// Totally stops the show  - only to be used for stopping, not clearing the timer (see this.clearTimer)
-		document.fire("protoShow:stopped");		
-		this.clearTimer();
-		this.stopTimer();
+		document.fire("protoShow:stopped");	
 		this.isPlaying = false;		
+		this.clearTimer();
+		this.stopTimer();		
 		this.updateControls(false);		
 	},
 	
@@ -365,7 +366,7 @@ var protoShow = Class.create({
 	
 	pauseOnHover: function() {
 
-		if (this.stopOnHover && (Event.observe(window,'mouseenter',function(){return;}) !== "undefined")  ) {
+		if (this.stopOnHover) {
 			// If true then when mouse enters the show *container* stop the show and when leaves then restart
 			var hoverDelay;
 			this.element.down('.show').observe('mouseenter',function() {
@@ -431,7 +432,7 @@ var protoShow = Class.create({
 	
 	
 	runTimer: function() {
-		if (this.timer) {
+		if (this.timer && (this.animating !== true)) {
 			// use Epoch time to ensure code executes in time specified
 			// borrowed from Emile JS http://script.aculo.us/downloads/emile.pdf
 			var start = (new Date).getTime();
@@ -439,19 +440,21 @@ var protoShow = Class.create({
 			var finish	= start+duration;
 			var angleStart = 0;
 			
-			var timerInternal = setInterval(function(){
+			var timerInternal = new PeriodicalExecuter(function(pe) {
 				var time = (new Date).getTime();
 				var pos  = time>finish ? 1 : (time-start)/duration;			
-				
+			
 				if (this.isPlaying) {				
-					this.drawArc(0,Math.floor(360*pos),'rgba(255,255,255,1)',true);
-				}
-				if(this.animating || time>finish) {	// if we are animating or we are finished then stop and clear the timer			
-					this.stopTimer(timerInternal);
+					this.drawArc(0,Math.floor((360*pos)),'rgba(255,255,255,1)',true);
 
 				}
+				if(this.animating || time>finish) {	// if we are animating or we are finished then stop and clear the timer			
+					pe.stop();
+					//console.log(this.slideTimer);
+					this.slideTimer.width = this.slideTimer.width;
+				}
 				
-			}.bind(this),10);	
+			}.bind(this),duration/100000);	
 		}
 	},
 	
@@ -464,23 +467,19 @@ var protoShow = Class.create({
 	
 	
 	drawArc: function(startAngle,endAngle,strokeStyle,shadow) {
-		
-
-		this.resetTimer();
-		
-		this.drawingArc = true;
-		
-		var ctx = this.timerCtx;	
-		
+		//this.resetTimer();		
+		this.drawingArc = true;		
+		var ctx = this.timerCtx;			
 		ctx.beginPath();		
 		ctx.strokeStyle = strokeStyle;
 		ctx.lineWidth = 3;	
 		ctx.arc(15,15,10, (Math.PI/180)*(startAngle-90),(Math.PI/180)*(endAngle-90), false); 
 		ctx.stroke();	
 		this.drawingArc = false;		
+		
 	},
 
-	stopTimer: function(timerInternal) {
+	stopTimer: function(timerInternal) {	
 		this.resetTimer();
 		clearInterval(timerInternal);
 		
