@@ -18,6 +18,7 @@ if(typeof Prototype=='undefined' || typeof Scriptaculous =='undefined') {
 	throw("Protoshow.js requires the Prototype & Scriptaculous  JavaScript framework");
 } else {
 
+
 var protoShow = Class.create({
 	initialize: function(element,options) {
 		
@@ -302,14 +303,16 @@ var protoShow = Class.create({
 		// Setup numbered navigation
 		if ( (this.options.buildNavigation) && (!this.element.select('.proto-navigation').length) ) {	// check doesn't already exist in the DOM
 			// If set in options then build the nav via javascript
-			var navOL		=	new Element('ol', { 'class': 'proto-navigation'});
-			this.element.insert(navOL,'bottom');
+			var navEle		=	new Element('ol', { 'class': 'proto-navigation'});
+			
 			var navTemplate = 	new Template('<li><a href="##{number}" title="Skip to Slide #{number}">#{number}</a></li>');
 
 			this.slides.each(function(e,index) {		// for each slide in the show create a Nav <li> using the Template above
 				var li = navTemplate.evaluate({number: index+1});
-				navOL.insert(li,'bottom');
+				navEle.insert(li,'bottom');
 			});
+
+			this.element.insert(navEle,'bottom');
 		}
 		
 		
@@ -525,11 +528,19 @@ var protoShow = Class.create({
 		//console.log(timerInternal);
 		clearInterval(timerInternal);
 		
-	}
-	
-	
-	
+	}	
 });
+
+Element.addMethods({
+	// Make Protoshow available as  method of all Prototype extended elements
+	// http://www.prototypejs.org/api/element/addmethods
+	protoShow: function(element, options) {
+	element = $(element);
+		var theShow = new protoShow(element,options);
+		return theShow;
+	}
+});
+
 }
 
 
