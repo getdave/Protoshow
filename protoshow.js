@@ -431,7 +431,7 @@ var protoShow = Class.create({
 			
 			if (!this.captionsElement) {
 				var captionEle			=	new Element('p', { 'class' : 'slide-caption'});
-				captionEle.addClassName('slide-caption');
+				
 				//var captionTag			=	new Element('p');
 				this.element.insert(captionEle,'bottom');
 				//captionEle.insert(captionTag);			

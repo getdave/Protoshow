@@ -5,7 +5,7 @@
 			captions	: 	true
 		});*/
 
-	$('myshow1').protoShow({
+	$('myshow1') && $('myshow1').protoShow({
 		interval	:	5000,
 		captions	: 	true
 	});
