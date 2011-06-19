@@ -37,7 +37,7 @@ var protoShow = Class.create({
 			previousText		: "Previous",
 			buildNavigation		: true,
 			navElements			: ".proto-navigation li",
-			buildControls		: false,
+			buildControls		: true,
 			stopOnHover			: true,
 			captions			: false,
 			captionsElement		: '.slide-caption',
@@ -66,6 +66,9 @@ var protoShow = Class.create({
 		this.stopOnHover		=	this.options.stopOnHover;							// Stop the show when hovering?
 		this.stopText 			=	this.options.stopText;								
 		this.playText			=	this.options.playText;
+		this.forwardText		=	this.options.forwardText
+		this.previousText		=	this.options.previousText;
+		this.buildControls		= 	this.options.buildControls;
 		this.captions			=	this.options.captions;
 		this.captionsElement	=	$$(this.options.captionsElement)[0];
 		this.navElements		=	this.options.navElements;
@@ -286,10 +289,10 @@ var protoShow = Class.create({
 			// Updates the status of the Play/Pause button		
 			if (status) {
 				// The show has been started so update the button to "Pause"
-				startStop.update(this.stopText).writeAttribute('title','Pause the slide show').addClassName('pause').removeClassName('play');
+				startStop.update(this.stopText).writeAttribute('title','this.stopText the slide show').addClassName('pause').removeClassName('play');
 			} else {			
 				// The show has been stopped so update the button to "Play"
-				startStop.update(this.playText).writeAttribute('title','Play the slide show').addClassName('play').removeClassName('pause');
+				startStop.update(this.playText).writeAttribute('title','this.playText the slide show').addClassName('play').removeClassName('pause');
 			}
 		
 	},
@@ -320,38 +323,70 @@ var protoShow = Class.create({
 			}.bind(this));
 		}
 	},
+
 	
-	createControls: function() {
 	
+	createControls: function() {	
+			
+		this.protoControls	=  this.element.down('.proto-controls');    // Stop/Forward/Back buttons
+				
+		if (typeof this.protoControls==="undefined" ) {
+			var controlsEle		 =	new Element('ol', { 'class': 'proto-controls'});
+			var controlsTemplate = 	new Template('<li class="#{htmlclass}"><a href="javascript:void(0)" title="#{title}">#{text}</a></li>');
+			
+			var startStop		 = 	controlsTemplate.evaluate({
+										htmlclass: "start-stop",
+										text:  this.playText,
+										title: "Pause the show"
+									});
+			var backward		 = 	controlsTemplate.evaluate({
+										htmlclass: "backward",
+										text:  this.previousText,
+										title: "Go to Previous slide and play backwards"
+									});
+			var forward			 = 	controlsTemplate.evaluate({
+										htmlclass: "forward",
+										text:  this.forwardText,
+										title: "Go to Next slide and play forwards"
+									});
+			
+			// Build a DOM fragment from all the above
+			controlsEle.insert(startStop,'bottom').insert(backward,'bottom').insert(forward,'bottom');
+			this.element.insert(controlsEle,'bottom');	// add into DOM		
+			this.protoControls = $(controlsEle);	// extend the DOM fragment		
+		} 
+
+		// If the controls already exists in the DOM
+		var startStop    	=	this.protoControls.down('.start-stop');
+		var forward      	=	this.protoControls.down('.forward');
+		var backward     	=	this.protoControls.down('.backward');
 		
-			this.protoControls	=  this.element.down('.proto-controls');    // Stop/Forward/Back buttons
-			// Adds observers for Slide Show controls  
-			var startStop    	=	this.protoControls.down('.start-stop');
-			var forward      	=	this.protoControls.down('.forward');
-			var backward     	=	this.protoControls.down('.backward');
-			
-			startStop.observe('click',function(e) {
-				e.stop();
-				if(this.isPlaying !== true) this.isPlaying = false; // if not "true" then *make sure* it's "false"
-				// Work out whether we're "Playing" and react accordingly. 
-				if (this.isPlaying) {
-					this.stop();	//  if we're "Playing" then stop the show				
-				} else {
-					this.play();	// else if we're not "Playing" then start the show 				
-				}
-			}.bind(this));
-			
-			forward.observe('click', function(e) {
-				e.stop();
-				this.goForward();
-			}.bind(this));
-			
-			backward.observe('click',function(e) {
-				e.stop();
-				this.goBackward();
-			}.bind(this));
+		
+		startStop.observe('click',function(e) {
+
+			e.stop();
+			if(this.isPlaying !== true) this.isPlaying = false; // if not "true" then *make sure* it's "false"
+			// Work out whether we're "Playing" and react accordingly. 
+			if (this.isPlaying) {
+				this.stop();	//  if we're "Playing" then stop the show				
+			} else {
+				this.play();	// else if we're not "Playing" then start the show 				
+			}
+		}.bind(this));
+		
+		forward.observe('click', function(e) {
+			e.stop();
+			this.goForward();
+		}.bind(this));
+		
+		backward.observe('click',function(e) {
+			e.stop();
+			this.goBackward();
+		}.bind(this));
 		
 	},
+
+	
 	
 	
 	navObserve: function(e,index) {
