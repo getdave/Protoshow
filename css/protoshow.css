@@ -1,44 +1,70 @@
-* {
-	margin: 0;
-	padding: 0;
-}
+/* ####################################### */
+/* ########### STANDARD SETUP ############ */
+/* ####################################### */
 
-body {
-	font-size: 12px;
-	background-color: #f7f7f7;
-}
-
-
-
-.proto-show {
+.protoshow,
+.protoshow .show {
 	position: relative;
-	width: 900px;
-	height: 300px;
-	margin: 50px;
-	font-family: Arial, sans-serif;
 }
 
-.proto-show ul.show {
+.protoshow .show {
 	margin: 0;
 	padding: 0;
 	list-style: none;
-	height: 300px;
 	width: 900px;
-	position: relative;
--moz-box-shadow:0 0 10px #333333;
-	}
-
+	height: 300px;
+}
 
 .slide {
 	position: absolute;
 	top: 0;
 	left: 0;
+	z-index: 99;
 }
 
-li.active-slide {
+.active-slide {
 	z-index: 100;
 }
 
+/* TRANSITION SLIDE
+------------------------------------------------*/
+
+.transition-slide .show-window {
+	overflow: hidden;
+	position: relative;
+}
+
+.transition-slide .show {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 999999px;
+}
+
+.transition-slide .slide {
+	position: static; /*overide*/
+	float: left;
+	display: block;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 .proto-navigation {
 	margin: 0;
 	padding: 0;
@@ -60,7 +86,7 @@ li.active-slide {
 	width: 8px;
 	height: 8px;
 	text-decoration: none;
-	background-color: rgba(255,255,255,0.5);    /*#E4E5E6;*/
+	background-color: rgba(255,255,255,0.5);    
 	border: 1px solid #090809;
 	color: #666;
 	text-indent: -9999px;
@@ -79,7 +105,7 @@ li.active-slide {
 
 .proto-navigation li.current-slide a:link,
 .proto-navigation li.current-slide a:visited {
-	background-color: rgba(30,30,30,0.9);/*#323232;*/
+	background-color: rgba(30,30,30,0.9);
 
 }
 
@@ -162,4 +188,4 @@ li.active-slide {
 	top: 10px;
 	right: 10px;
 	z-index: 9999;
-}
+}*/

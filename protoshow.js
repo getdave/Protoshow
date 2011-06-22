@@ -36,7 +36,7 @@ var protoShow = Class.create({
 			selector			: ".slide",					
 			interval			: 3000,
 			initialSlide		: 1,
-			mode				: 'backward',
+			mode				: 'forward',
 			autoPlay			: true,
 			autoRestart			: true,
 			transitionType		: "slide",
@@ -63,26 +63,29 @@ var protoShow = Class.create({
 		this.element 			= 	$(element);											// DOM element that contains the slideshow
 		this.slides 			= 	this.element.select(this.options.selector);			// Elements that are to be the "Slides"		
 		this.slidesLength		=	this.slides.size();		// Total number of Slides
-		this.interval 			= 	this.options.interval;								// Interval delay between swapping the Slides
+		this.interval 			= 	this.options.interval;	
+		this.transitionTime		=	this.options.transitionTime;					
 		this.currentSlideID 	= 	this.options.initialSlide - 1;		
 		this.nextSlideID		=	this.currentSlideID + 1;
 		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
 		this.autoPlay			=	this.options.autoPlay;
 
-		if (typeof(this.options.transitionType) == "function") {
-			// If function then user has passed in custom transition function to be used
-			this.transitionType		=	this.options.transitionType;
-		} else {
-			this.transitionType		=	this[this.options.transitionType];
-		}
-
-
 		
+
+
 
 		// define variables before use
 		this.masterTimer		=	false;
 		this.animating			=	false;	// boolean for "animating" status
 		this.loopCount			=	0;
+		this.slideWidth			=	0;
+		this.slideHeight		=	0;
+
+
+
+		//run some initial setup
+		this.setupTransitions(this.options.transitionType);
+
 
 		// let's get things going!
 		this.slides[this.currentSlideID].show().addClassName('active-slide');		
@@ -163,24 +166,72 @@ var protoShow = Class.create({
 	fade: function(current,next,opts) {
 		// Role: Transition function
 		// Type: Fade - fades slides in and out
+
+		var _this = this;
+
 		next.show();
 		current.fade({
-			afterFinish: function() {
+			duration	: _this.transitionTime,
+			afterFinish	: function() {
 				return opts.transitionFinish();
 			}
-		});
-
-		
-			
+		});	
 	},
 
 	slide: function(current,next,opts) {
 		// Role: Transition function
 		// Type: Slider - slides slides across the screen
-		console.log("Sliding");
+		var _this = this;
+		var moveLeft = this.slideWidth;
+
+		console.log(this.currentSlideID);
+		console.log(this.slidesLength);
+
+		if (this.currentSlideID == this.slidesLength-1) {
+			moveLeft = -(this.slideWidth * (this.slidesLength-1));
+		}
+
+		console.log(moveLeft);
+
+		new Effect.Move(_this.showEle, { 
+			x: -(moveLeft), 
+			y: 0,
+			duration	: _this.transitionTime,
+			afterFinish	: function() {
+				return opts.transitionFinish();
+			}
+		});
 	},
 
 	
+	setupTransitions: function(transType) {
+		var _this = this;
+		// Role: Setup basics for transitions
+		if (typeof(transType) == "function") {	// user has defined custom transition function
+			// If function then user has passed in custom transition function to be used
+			this.transitionType		=	transType;
+		} else {	// it's a string
+			this.transitionType		=	this[transType];			
+			this.element.addClassName('transition-' + transType);
+			
+			if (transType === "slide") {
+
+				this.showWindow 	=	this.element.down('.show').wrap('div', { 'class': 'show-window' });
+				this.showEle		=	this.showWindow.down('.show');
+				var slideLayout 	= 	this.slides[0].getLayout();
+				this.slideWidth  	= 	slideLayout.get('width');
+				this.slideHeight 	= 	slideLayout.get('height');
+				
+				
+
+
+				this.showWindow.setStyle({
+					width	: 	_this.slideWidth + "px",
+				  	height	: 	_this.slideHeight + "px"
+				});
+			}		
+		}	
+	},
 
 
 
