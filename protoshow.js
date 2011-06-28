@@ -80,12 +80,14 @@ var protoShow = Class.create({
 		this.loopCount			=	0;
 		this.slideWidth			=	0;
 		this.slideHeight		=	0;
+		this.slideIntervals		=	[];
 
 
 
 		//run some initial setup
 		this.setupTransitions(this.options.transitionType);
 
+		this.setupSlides();
 
 		// let's get things going!
 		this.slides[this.currentSlideID].show().addClassName('active-slide');		
@@ -102,11 +104,14 @@ var protoShow = Class.create({
 		console.info("Master timer is: " + this.masterTimer);
 		// Role: Starts the show and initialises master timer
 		console.log("Playing");
+
+		// Check if custom interval has been defined by user as data attribute in HTML
+		var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
 		
 		var _this = this;		
 		this.masterTimer	=	new PeriodicalExecuter(function(pe) {
 		  	_this.mode();		    
-		}, this.interval/1000);
+		}, slideInterval/1000);
 		this.loopCount++;
 	},
 
@@ -142,6 +147,7 @@ var protoShow = Class.create({
 
 
 		this.transitionType(this.slides[this.currentSlideID],this.slides[this.nextSlideID], {
+			transitionTime		:   .5,
 			transitionFinish	:	function() {	// pass a callback to ensure play can't resume until transition has completed
 				_this.toggleAnimating(false);
 				_this.slides[_this.currentSlideID].removeClassName('active-slide');
@@ -152,11 +158,7 @@ var protoShow = Class.create({
 					_this.play();
 				}				
 			}
-		});
-		
-		
-
-		
+		});		
 	},
 
 
@@ -171,7 +173,7 @@ var protoShow = Class.create({
 
 		next.show();
 		current.fade({
-			duration	: _this.transitionTime,
+			duration	: opts.transitionTime,
 			afterFinish	: function() {
 				return opts.transitionFinish();
 			}
@@ -184,25 +186,35 @@ var protoShow = Class.create({
 		var _this = this;
 		var moveLeft = this.slideWidth;
 
-		console.log(this.currentSlideID);
-		console.log(this.slidesLength);
-
 		if (this.currentSlideID == this.slidesLength-1) {
 			moveLeft = -(this.slideWidth * (this.slidesLength-1));
 		}
 
-		console.log(moveLeft);
+		console.log(opts.transitionTime);
 
 		new Effect.Move(_this.showEle, { 
 			x: -(moveLeft), 
 			y: 0,
-			duration	: _this.transitionTime,
+			transition: Effect.Transitions.sinoidal,
+			duration	: opts.transitionTime,
 			afterFinish	: function() {
 				return opts.transitionFinish();
 			}
 		});
 	},
 
+	setupSlides: function() {
+		
+		var _this = this;
+
+		// Get user defined custom intervals
+		this.slides.each(function(e, index) {			
+			var slideInt = e.readAttribute('data-slide-interval');			
+			_this.slideIntervals.push(slideInt);
+		});		
+		
+		
+	},
 	
 	setupTransitions: function(transType) {
 		var _this = this;
@@ -221,8 +233,6 @@ var protoShow = Class.create({
 				var slideLayout 	= 	this.slides[0].getLayout();
 				this.slideWidth  	= 	slideLayout.get('width');
 				this.slideHeight 	= 	slideLayout.get('height');
-				
-				
 
 
 				this.showWindow.setStyle({
