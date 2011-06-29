@@ -64,9 +64,11 @@ var protoShow = Class.create({
 		this.slides 			= 	this.element.select(this.options.selector);			// Elements that are to be the "Slides"		
 		this.slidesLength		=	this.slides.size();		// Total number of Slides
 		this.interval 			= 	this.options.interval;	
-		this.transitionTime		=	this.options.transitionTime;					
+		this.transitionTime		=	this.options.transitionTime;		
+		this.manTransitionTime	=	this.options.manTransitionTime;
 		this.currentSlideID 	= 	this.options.initialSlide - 1;		
 		this.nextSlideID		=	this.currentSlideID + 1;
+
 		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
 		this.autoPlay			=	this.options.autoPlay;
 
@@ -81,7 +83,8 @@ var protoShow = Class.create({
 		this.slideWidth			=	0;
 		this.slideHeight		=	0;
 		this.slideIntervals		=	[];
-
+		this.currentSlideEle	=	this.slides[this.currentSlideID];
+		this.nextSlideEle		=	this.slides[this.nextSlideID];
 
 
 		//run some initial setup
@@ -89,8 +92,7 @@ var protoShow = Class.create({
 
 		this.setupSlides();
 
-		// let's get things going!
-		this.slides[this.currentSlideID].show().addClassName('active-slide');		
+		// let's get things going!				
 		this.play();
 		
 	},
@@ -104,11 +106,12 @@ var protoShow = Class.create({
 		console.info("Master timer is: " + this.masterTimer);
 		// Role: Starts the show and initialises master timer
 		console.log("Playing");
+		var _this = this;	
 
 		// Check if custom interval has been defined by user as data attribute in HTML
 		var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
 		
-		var _this = this;		
+		// Set Master time which controls progress of show			
 		this.masterTimer	=	new PeriodicalExecuter(function(pe) {
 		  	_this.mode();		    
 		}, slideInterval/1000);
@@ -124,36 +127,52 @@ var protoShow = Class.create({
 
 	},
 
-	forward: function() {
+	forward: function(transTime) {
 		// Role: Runs slideshow "forwards"
 		console.log("Forward");
-		this.goMaster( this.currentSlideID + 1 );
+		this.goMaster( this.currentSlideID + 1, transTime);
 	},
 
-	backward: function() {
+	backward: function(transTime) {
 		// Role: Runs slideshow "backwards"
 		console.log("Backward");		
-		this.goMaster( this.currentSlideID - 1 );	
+		this.goMaster( this.currentSlideID - 1, transTime );	
 	},
 
-	goMaster: function(next) {
+	next: function() {
+		this.forward(this.manTransitionTime);
+	},
+
+	previous: function() {
+		this.backward(this.manTransitionTime);
+	},
+
+	goMaster: function(next,transTime) {
 		// Role: Master function - controls delegation of slide swapping	
-		var _this = this;
-		this.stop();
-		this.toggleAnimating(true);
 		
+		var _this = this;
+
+		// Set the transistion speed to transTime arg (if set) else fallback to standard transitionTime
+		var transTime = (transTime) ? transTime : _this.transitionTime;
+
+		this.stop();
+		this.toggleAnimating(true);		
 		this.setNextIndex(next);  // set this.nextSlideID correctly		
 		this.reportSlides();
 
 
-		this.transitionType(this.slides[this.currentSlideID],this.slides[this.nextSlideID], {
-			transitionTime		:   .5,
+		this.transitionType(this.currentSlideEle,this.nextSlideEle, {
+			transitionTime		:   transTime,
 			transitionFinish	:	function() {	// pass a callback to ensure play can't resume until transition has completed
 				_this.toggleAnimating(false);
-				_this.slides[_this.currentSlideID].removeClassName('active-slide');
-				_this.slides[_this.nextSlideID].addClassName('active-slide');
+				_this.currentSlideEle.removeClassName('active-slide');
+				_this.nextSlideEle.addClassName('active-slide');
 				
-				_this.currentSlideID = _this.nextSlideID;	// update current slide to be the slide we're just moved to
+				_this.currentSlideID 	= 	_this.nextSlideID;	// update current slide to be the slide we're just moved to
+
+				_this.currentSlideEle	=	_this.slides[_this.nextSlideID];
+
+
 				if (_this.autoPlay) {
 					_this.play();
 				}				
@@ -186,11 +205,10 @@ var protoShow = Class.create({
 		var _this = this;
 		var moveLeft = this.slideWidth;
 
+		// If we're on the last slide transition then reset to first slide position
 		if (this.currentSlideID == this.slidesLength-1) {
-			moveLeft = -(this.slideWidth * (this.slidesLength-1));
+			moveLeft = -(this.slideWidth * (this.slidesLength-1));	// double negative equals positive
 		}
-
-		console.log(opts.transitionTime);
 
 		new Effect.Move(_this.showEle, { 
 			x: -(moveLeft), 
@@ -203,17 +221,19 @@ var protoShow = Class.create({
 		});
 	},
 
-	setupSlides: function() {
-		
+	setupSlides: function() {		
 		var _this = this;
 
-		// Get user defined custom intervals
+		// Ensure first slide is visible and has active class
+		this.slides[this.currentSlideID].show().addClassName('active-slide');
+
+		// Get and set user defined custom intervals
 		this.slides.each(function(e, index) {			
 			var slideInt = e.readAttribute('data-slide-interval');			
-			_this.slideIntervals.push(slideInt);
+			slideInt = (slideInt.blank()) ? undefined : 'slideInt';	// check slideInt is not a blank string
+
+			_this.slideIntervals.push(slideInt);	// push intervals into array for use later
 		});		
-		
-		
 	},
 	
 	setupTransitions: function(transType) {
@@ -222,6 +242,7 @@ var protoShow = Class.create({
 		if (typeof(transType) == "function") {	// user has defined custom transition function
 			// If function then user has passed in custom transition function to be used
 			this.transitionType		=	transType;
+			this.element.addClassName('transition-custom');
 		} else {	// it's a string
 			this.transitionType		=	this[transType];			
 			this.element.addClassName('transition-' + transType);
@@ -281,6 +302,7 @@ var protoShow = Class.create({
 		}
 
 		this.nextSlideID = next;	
+		this.nextSlideEle = this.slides[this.nextSlideID];
 	},
 
 

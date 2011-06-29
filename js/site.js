@@ -1,7 +1,9 @@
-﻿document.observe("dom:loaded", function() {
+﻿var myshow;
+
+document.observe("dom:loaded", function() {
 	
 	
-	show = new protoShow('myshow1',{
+	var myshow = new protoShow('myshow1',{
 		interval		:	2000,
 		captions		: 	true,
 		/*transitionType	:   function() {
