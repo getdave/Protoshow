@@ -44,7 +44,7 @@ var protoShow = Class.create({
 			manTransitionTime	: 0.5,
 			stopText			: "Pause",
 			playText			: "Play",
-			forwardText			: "Next",
+			nextText			: "Next",
 			previousText		: "Previous",
 			buildNavigation		: true,
 			navElements			: ".proto-navigation li",
@@ -68,7 +68,9 @@ var protoShow = Class.create({
 		this.manTransitionTime	=	this.options.manTransitionTime;
 		this.currentSlideID 	= 	this.options.initialSlide - 1;		
 		this.nextSlideID		=	this.currentSlideID + 1;
-
+		this.playText			=	this.options.playText;
+		this.nextText			=	this.options.nextText;
+		this.previousText		=	this.options.previousText;
 		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
 		this.autoPlay			=	this.options.autoPlay;
 
@@ -89,8 +91,8 @@ var protoShow = Class.create({
 
 		//run some initial setup
 		this.setupTransitions(this.options.transitionType);
-
 		this.setupSlides();
+		this.setupControls();
 
 		// let's get things going!				
 		this.play();
@@ -102,8 +104,6 @@ var protoShow = Class.create({
 	------------------------------------------------*/
 
 	play: function() {
-		console.info("Loop count: " + this.loopCount)
-		console.info("Master timer is: " + this.masterTimer);
 		// Role: Starts the show and initialises master timer
 		console.log("Playing");
 		var _this = this;	
@@ -122,7 +122,7 @@ var protoShow = Class.create({
 		// Completely stops the show and clears the master timer
 		var _this = this;
 		console.log("Stopping");
-		_this.masterTimer.stop();
+		_this.masterTimer && _this.masterTimer.stop();
 		_this.masterTimer = null;
 
 	},
@@ -152,6 +152,10 @@ var protoShow = Class.create({
 		
 		var _this = this;
 
+		if(this.isAnimating()) {
+			return false;
+		}
+
 		// Set the transistion speed to transTime arg (if set) else fallback to standard transitionTime
 		var transTime = (transTime) ? transTime : _this.transitionTime;
 
@@ -169,7 +173,6 @@ var protoShow = Class.create({
 				_this.nextSlideEle.addClassName('active-slide');
 				
 				_this.currentSlideID 	= 	_this.nextSlideID;	// update current slide to be the slide we're just moved to
-
 				_this.currentSlideEle	=	_this.slides[_this.nextSlideID];
 
 
@@ -208,7 +211,7 @@ var protoShow = Class.create({
 		// If we're on the last slide transition then reset to first slide position
 		if (this.currentSlideID == this.slidesLength-1) {
 			moveLeft = -(this.slideWidth * (this.slidesLength-1));	// double negative equals positive
-		}
+		} 
 
 		new Effect.Move(_this.showEle, { 
 			x: -(moveLeft), 
@@ -220,6 +223,10 @@ var protoShow = Class.create({
 			}
 		});
 	},
+
+
+	/* SETUP METHODS
+	------------------------------------------------*/
 
 	setupSlides: function() {		
 		var _this = this;
@@ -237,8 +244,9 @@ var protoShow = Class.create({
 	},
 	
 	setupTransitions: function(transType) {
-		var _this = this;
 		// Role: Setup basics for transitions
+		var _this = this;
+		
 		if (typeof(transType) == "function") {	// user has defined custom transition function
 			// If function then user has passed in custom transition function to be used
 			this.transitionType		=	transType;
@@ -264,6 +272,62 @@ var protoShow = Class.create({
 		}	
 	},
 
+	setupControls: function() {
+		// Role: Setup controls
+
+		var _this = this;
+	
+		this.protoControls	=  this.element.down('.proto-controls');    // Stop/Forward/Back buttons
+
+		if (typeof this.protoControls==="undefined" ) {
+
+			var controlsEle		 =	new Element('ol', { 'class': 'proto-controls'});
+			var controlsTemplate = 	new Template('<li class="#{htmlclass}"><a href="javascript:void(0)" title="#{title}">#{text}</a></li>');
+			
+			var startStop		 = 	controlsTemplate.evaluate({
+										htmlclass: "proto-control start-stop",
+										text:  this.playText,
+										title: "Pause the show"
+									});
+			var backward		 = 	controlsTemplate.evaluate({
+										htmlclass: "proto-control backward",
+										text:  this.previousText,
+										title: "Go to Previous slide and play backwards"
+									});
+			var forward			 = 	controlsTemplate.evaluate({
+										htmlclass: "proto-control forward",
+										text:  this.nextText,
+										title: "Go to Next slide and play forwards"
+									});
+			
+			// Build a DOM fragment from all the above
+			controlsEle.insert(startStop,'bottom').insert(backward,'bottom').insert(forward,'bottom');
+			this.element.insert(controlsEle,'bottom');	// add into DOM		
+			this.protoControls = $(controlsEle);	// extend the DOM fragment		
+		} 
+
+		// If the controls already exists in the DOM
+		var startStop    	=	this.protoControls.down('.start-stop');
+		var forward      	=	this.protoControls.down('.forward');
+		var backward     	=	this.protoControls.down('.backward');
+
+		this.protoControls.on("click", ".proto-control", function(event, element) {
+			event.stop();
+			if(element === forward) {
+				_this.next();
+			} else if (element === backward) {
+				_this.previous();
+			} else {
+				/*console.log(_this.isPlaying());
+								if (_this.isPlaying()) {
+									_this.stop();	//  if we're "Playing" then stop the show				
+								} else {
+									_this.play();	// else if we're not "Playing" then start the show 				
+								}*/
+			}
+		});
+		
+	},
 
 
 	/* UTILITY FUNCTIONS
@@ -271,6 +335,7 @@ var protoShow = Class.create({
 
 	isPlaying: function() {
 		return this.masterTimer != null;
+
 	},
 
 	isAnimating: function() {
