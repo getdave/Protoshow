@@ -139,7 +139,7 @@ var protoShow = Class.create({
 		if (boolean) {
 			// Check if custom interval has been defined by user as data attribute in HTML
 			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
-			
+			console.log(slideInterval);
 			// Set Master time which controls progress of show			
 			this.masterTimer	=	new PeriodicalExecuter(function(pe) {
 			  	_this.mode();		    
@@ -269,7 +269,7 @@ var protoShow = Class.create({
 		// Get and set user defined custom intervals
 		this.slides.each(function(e, index) {			
 			var slideInt = e.readAttribute('data-slide-interval');			
-			slideInt = (slideInt.blank()) ? undefined : 'slideInt';	// check slideInt is not a blank string
+			slideInt = (slideInt.blank()) ? undefined : slideInt;	// check slideInt is not a blank string
 
 			_this.slideIntervals.push(slideInt);	// push intervals into array for use later
 		});		
@@ -372,7 +372,7 @@ var protoShow = Class.create({
 				}
 			}
 
-			
+
 
 			handlingClick = false;
 		});
