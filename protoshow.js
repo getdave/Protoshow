@@ -292,6 +292,9 @@ var protoShow = Class.create({
 				this.showWindow 	=	this.element.down('.show').wrap('div', { 'class': 'show-window' });
 				this.showEle		=	this.showWindow.down('.show');
 				var slideLayout 	= 	this.slides[0].getLayout();
+
+				console.log(slideLayout);
+
 				this.slideWidth  	= 	slideLayout.get('width');
 				this.slideHeight 	= 	slideLayout.get('height');
 
