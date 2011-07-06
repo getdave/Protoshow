@@ -71,6 +71,7 @@ var protoShow = Class.create({
 		this.playText			=	this.options.playText;
 		this.nextText			=	this.options.nextText;
 		this.previousText		=	this.options.previousText;
+		this.stopText			=	this.options.stopText;
 		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
 		this.autoPlay			=	this.options.autoPlay;
 
@@ -79,6 +80,7 @@ var protoShow = Class.create({
 
 
 		// define variables before use
+		this.running			=	false;
 		this.masterTimer		=	false;
 		this.animating			=	false;	// boolean for "animating" status
 		this.loopCount			=	0;
@@ -103,28 +105,50 @@ var protoShow = Class.create({
 	/* DIRECTIONAL CONTROLS
 	------------------------------------------------*/
 
+	
+
 	play: function() {
 		// Role: Starts the show and initialises master timer
 		console.log("Playing");
 		var _this = this;	
-
-		// Check if custom interval has been defined by user as data attribute in HTML
-		var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
 		
-		// Set Master time which controls progress of show			
-		this.masterTimer	=	new PeriodicalExecuter(function(pe) {
-		  	_this.mode();		    
-		}, slideInterval/1000);
-		this.loopCount++;
+		this.running = true;
+
+		this.toggleMasterTimer(true);	
+		this.updateControls(true);
+		
+		console.log("Play function says isPlaying() is: " + _this.isPlaying());	
 	},
 
 	stop: function() {
 		// Completely stops the show and clears the master timer
 		var _this = this;
 		console.log("Stopping");
-		_this.masterTimer && _this.masterTimer.stop();
-		_this.masterTimer = null;
+		
+		this.running = false;
 
+		this.toggleMasterTimer(false);
+		this.updateControls(false);
+		
+		console.log("Stop function says isPlaying() is: " + _this.isPlaying());
+	},
+
+	toggleMasterTimer: function(boolean) {
+		var _this = this;
+
+		if (boolean) {
+			// Check if custom interval has been defined by user as data attribute in HTML
+			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
+			
+			// Set Master time which controls progress of show			
+			this.masterTimer	=	new PeriodicalExecuter(function(pe) {
+			  	_this.mode();		    
+			}, slideInterval/1000);
+			this.loopCount++;
+		} else {
+			_this.masterTimer && _this.masterTimer.stop();
+			_this.masterTimer = null;
+		}
 	},
 
 	forward: function(transTime) {
@@ -152,6 +176,10 @@ var protoShow = Class.create({
 		
 		var _this = this;
 
+		//this.stop();
+		// First thing's first, we hault the show whatever the circumstances
+		this.toggleMasterTimer(false); 
+
 		if(this.isAnimating()) {
 			return false;
 		}
@@ -159,7 +187,8 @@ var protoShow = Class.create({
 		// Set the transistion speed to transTime arg (if set) else fallback to standard transitionTime
 		var transTime = (transTime) ? transTime : _this.transitionTime;
 
-		this.stop();
+		
+
 		this.toggleAnimating(true);		
 		this.setNextIndex(next);  // set this.nextSlideID correctly		
 		this.reportSlides();
@@ -176,8 +205,11 @@ var protoShow = Class.create({
 				_this.currentSlideEle	=	_this.slides[_this.nextSlideID];
 
 
-				if (_this.autoPlay) {
-					_this.play();
+				if (_this.autoPlay && _this.running ) {
+					//_this.play();
+					// if we're autoplaying and we're not explicity stopped
+					// otherwise show Master Timer is not permitted to restart itself
+					_this.toggleMasterTimer(true);	
 				}				
 			}
 		});		
@@ -307,24 +339,42 @@ var protoShow = Class.create({
 		} 
 
 		// If the controls already exists in the DOM
-		var startStop    	=	this.protoControls.down('.start-stop');
-		var forward      	=	this.protoControls.down('.forward');
-		var backward     	=	this.protoControls.down('.backward');
+		this.controlStartStop    	=	this.protoControls.down('.start-stop');
+		this.controlForward      	=	this.protoControls.down('.forward');
+		this.controlBackward     	=	this.protoControls.down('.backward');
+
+
+		// define "lock" variable to stop abuse of controls
+		var handlingClick	= false;
 
 		this.protoControls.on("click", ".proto-control", function(event, element) {
 			event.stop();
-			if(element === forward) {
-				_this.next();
-			} else if (element === backward) {
-				_this.previous();
-			} else {
-				/*console.log(_this.isPlaying());
-								if (_this.isPlaying()) {
-									_this.stop();	//  if we're "Playing" then stop the show				
-								} else {
-									_this.play();	// else if we're not "Playing" then start the show 				
-								}*/
+
+			// make sure we're not processing multiple click events 
+			if (handlingClick) {
+				return false;
 			}
+
+			handlingClick = true;
+			
+			//console.info(element);
+			
+			if(element === _this.controlForward) {
+				_this.next();
+			} else if (element === _this.controlBackward) {
+				_this.previous();
+			} else {	
+					
+				if (_this.running) {
+					_this.stop();	//  if we're "Playing" then stop the show				
+				} else {
+					_this.play();	// else if we're not "Playing" then start the show 				
+				}
+			}
+
+			
+
+			handlingClick = false;
 		});
 		
 	},
@@ -335,7 +385,6 @@ var protoShow = Class.create({
 
 	isPlaying: function() {
 		return this.masterTimer != null;
-
 	},
 
 	isAnimating: function() {
@@ -370,6 +419,18 @@ var protoShow = Class.create({
 		this.nextSlideEle = this.slides[this.nextSlideID];
 	},
 
+	updateControls: function(status) {
+		var _this = this;
+		// Role: Updates the status of the Play/Pause button		
+		if (status) {			// The show has been started so update the button to "Pause"
+			this.controlStartStop.down('a').update(_this.stopText);
+		} else {			
+			// The show has been stopped so update the button to "Play"
+			this.controlStartStop.down('a').update(_this.playText);
+		}
+		
+	},
+
 
 	
 	/* LOGGING FUNCTIONS
@@ -378,6 +439,7 @@ var protoShow = Class.create({
 	reportSlides: function() {
 		console.log("Current slide: " + this.currentSlideID);
 		console.log("Next slide: " + this.nextSlideID);	
+
 	},
 
 
