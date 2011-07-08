@@ -11,7 +11,8 @@
 	margin: 0;
 	padding: 0;
 	list-style: none;
-
+	width: 900px;
+	height: 300px;
 }
 
 .slide {
@@ -19,8 +20,7 @@
 	top: 0;
 	left: 0;
 	z-index: 99;
-	width: 900px;
-	height: 300px;
+	height: 100%;
 }
 
 .active-slide {

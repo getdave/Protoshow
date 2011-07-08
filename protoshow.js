@@ -238,15 +238,28 @@ var protoShow = Class.create({
 		// Role: Transition function
 		// Type: Slider - slides slides across the screen
 		var _this = this;
-		var moveLeft = this.slideWidth;
+		var moveLeft;
 
-		// If we're on the last slide transition then reset to first slide position
-		if (this.currentSlideID == this.slidesLength-1) {
-			moveLeft = -(this.slideWidth * (this.slidesLength-1));	// double negative equals positive
-		} 
-
+		
+		if (this.currentSlideID === 0 && this.nextSlideID === (this.slidesLength-1)) {
+			/*we're going "backwards" from the 1st slide to the last slide*/
+			moveLeft = -(this.slideWidth * (this.slidesLength-1));
+		} else if (this.currentSlideID === (this.slidesLength-1) && this.nextSlideID === 0) {
+			/*we're going "forwards" from the last slide to the first slide*/
+			moveLeft = (this.slideWidth * (this.slidesLength-1));
+		} else {
+			/*we're within bounds*/
+			if (this.currentSlideID > this.nextSlideID) {
+				moveLeft = this.slideWidth;
+			} else {
+				moveLeft = this.slideWidth*-1; /*multiply by -1 converts to negative*/ 
+			}
+			
+		}
+		
+		
 		new Effect.Move(_this.showEle, { 
-			x: -(moveLeft), 
+			x: moveLeft, 
 			y: 0,
 			transition: Effect.Transitions.sinoidal,
 			duration	: opts.transitionTime,
@@ -292,9 +305,6 @@ var protoShow = Class.create({
 				this.showWindow 	=	this.element.down('.show').wrap('div', { 'class': 'show-window' });
 				this.showEle		=	this.showWindow.down('.show');
 				var slideLayout 	= 	this.slides[0].getLayout();
-
-				console.log(slideLayout);
-
 				this.slideWidth  	= 	slideLayout.get('width');
 				this.slideHeight 	= 	slideLayout.get('height');
 
