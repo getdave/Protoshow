@@ -95,6 +95,7 @@ var protoShow = Class.create({
 		this.setupTransitions(this.options.transitionType);
 		this.setupSlides();
 		this.setupControls();
+		this.setupNavigation();
 
 		// let's get things going!				
 		this.play();
@@ -169,6 +170,13 @@ var protoShow = Class.create({
 
 	previous: function() {
 		this.backward(this.manTransitionTime);
+	},
+
+	gotoSlide: function(slide,transTime) {
+		if (slide === this.currentSlideID) {
+			return false;
+		}
+		this.goMaster( slide, this.manTransitionTime );	
 	},
 
 	goMaster: function(next,transTime) {
@@ -276,16 +284,19 @@ var protoShow = Class.create({
 	setupSlides: function() {		
 		var _this = this;
 
-		// Ensure first slide is visible and has active class
-		this.slides[this.currentSlideID].show().addClassName('active-slide');
+		
 
 		// Get and set user defined custom intervals
-		this.slides.each(function(e, index) {			
+		this.slides.each(function(e, index) {	
+			e.hide();		
 			var slideInt = e.readAttribute('data-slide-interval');			
 			slideInt = (slideInt.blank()) ? undefined : slideInt;	// check slideInt is not a blank string
 
 			_this.slideIntervals.push(slideInt);	// push intervals into array for use later
 		});		
+
+		// Ensure first slide is visible and has active class
+		this.slides[this.currentSlideID].show().addClassName('active-slide');
 	},
 	
 	setupTransitions: function(transType) {
@@ -384,12 +395,52 @@ var protoShow = Class.create({
 					_this.play();	// else if we're not "Playing" then start the show 				
 				}
 			}
-
-
-
+			/*remove the "lock" variable*/
 			handlingClick = false;
 		});
 		
+	},
+
+
+	setupNavigation: function() {
+		// Role: Setup Navigation
+		var _this = this;
+	
+		this.protoNavigation	=  this.element.down('.proto-navigation');    
+
+		if (typeof this.protoNavigation==="undefined" ) {
+			var navEle		=	new Element('ol', { 'class': 'proto-navigation'});			
+			var navTemplate = 	new Template('<li><a href="##{number}" title="Skip to Slide #{number}">#{number}</a></li>');
+
+			this.slides.each(function(e,index) {		// for each slide in the show create a Nav <li> using the Template above
+				var li = navTemplate.evaluate({number: index+1});
+				navEle.insert(li,'bottom');
+			});
+
+			this.element.insert(navEle,'bottom');
+			this.protoNavigation	=  this.element.down('.proto-navigation');
+			this.protoNavigation.down('li').addClassName('current-slide');
+		}
+
+		// define "lock" variable to stop abuse of controls
+		var handlingClick	= false;
+		
+		this.protoNavigation.on("click", "a", function(event, element) {
+			event.stop();
+
+			// make sure we're not processing multiple click events 
+			if (handlingClick) {
+				return false;
+			}
+
+			handlingClick = true;
+		
+			var index = element.hash.substr(1,2);
+			console.info(index);
+			_this.gotoSlide(index-1);
+			/*remove the "lock" variable*/
+			handlingClick = false;
+		});
 	},
 
 
@@ -419,7 +470,9 @@ var protoShow = Class.create({
 		
 		if(next === undefined) { // Ensure "next" has a value
 			next = this.currentSlideID+1;
-		}
+		} 
+
+
 
 		// Ensure we're within bounds
 		if (next >= this.slidesLength) {
