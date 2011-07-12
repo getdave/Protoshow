@@ -39,7 +39,7 @@ var protoShow = Class.create({
 			mode				: 'forward',
 			autoPlay			: true,
 			autoRestart			: true,
-			transitionType		: "slide",
+			transitionType		: "fade",
 			transitionTime		: 1.5,
 			manTransitionTime	: 0.5,
 			stopText			: "Pause",
@@ -64,6 +64,7 @@ var protoShow = Class.create({
 		this.slides 			= 	this.element.select(this.options.selector);			// Elements that are to be the "Slides"		
 		this.slidesLength		=	this.slides.size();		// Total number of Slides
 		this.interval 			= 	this.options.interval;	
+		this.transitionType		=	this.options.transitionType;
 		this.transitionTime		=	this.options.transitionTime;		
 		this.manTransitionTime	=	this.options.manTransitionTime;
 		this.currentSlideID 	= 	this.options.initialSlide - 1;		
@@ -245,36 +246,21 @@ var protoShow = Class.create({
 	slide: function(current,next,opts) {
 		// Role: Transition function
 		// Type: Slider - slides slides across the screen
-		var _this = this;
-		var moveLeft;
-
+		var _this = this;			
 		
-		if (this.currentSlideID === 0 && this.nextSlideID === (this.slidesLength-1)) {
-			/*we're going "backwards" from the 1st slide to the last slide*/
-			moveLeft = -(this.slideWidth * (this.slidesLength-1));
-		} else if (this.currentSlideID === (this.slidesLength-1) && this.nextSlideID === 0) {
-			/*we're going "forwards" from the last slide to the first slide*/
-			moveLeft = (this.slideWidth * (this.slidesLength-1));
-		} else {
-			/*we're within bounds*/
-			if (this.currentSlideID > this.nextSlideID) {
-				moveLeft = this.slideWidth;
-			} else {
-				moveLeft = this.slideWidth*-1; /*multiply by -1 converts to negative*/ 
-			}
-			
-		}
+		var leftPos = this.slideWidth * this.nextSlideID; 
 		
 		
-		new Effect.Move(_this.showEle, { 
-			x: moveLeft, 
-			y: 0,
-			transition: Effect.Transitions.sinoidal,
+		new Effect.Morph(_this.showEle, {
+			style: {
+				left: -leftPos + 'px'
+			}, // CSS Properties
 			duration	: opts.transitionTime,
 			afterFinish	: function() {
 				return opts.transitionFinish();
 			}
 		});
+
 	},
 
 
@@ -288,7 +274,11 @@ var protoShow = Class.create({
 
 		// Get and set user defined custom intervals
 		this.slides.each(function(e, index) {	
-			e.hide();		
+			
+
+			if (_this.options.transitionType !== "slide") {
+				e.hide();		
+			}
 			var slideInt = e.readAttribute('data-slide-interval');			
 			slideInt = (slideInt.blank()) ? undefined : slideInt;	// check slideInt is not a blank string
 

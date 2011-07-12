@@ -10,7 +10,7 @@ document.observe("dom:loaded", function() {
 					console.log("My custom trans");	
 				},*/
 
-		transitionType	: 	"fade", 
+		transitionType	: 	"slide", 
 		cc				: 	false
 	});
 
