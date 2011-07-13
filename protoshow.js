@@ -36,23 +36,19 @@ var protoShow = Class.create({
 			selector			: ".slide",					
 			interval			: 3000,
 			initialSlide		: 1,
-			mode				: 'forward',
+			mode				: "forward",
 			autoPlay			: true,
 			autoRestart			: true,
 			transitionType		: "fade",
 			transitionTime		: 1.5,
-			manTransitionTime	: 0.5,
+			manTransitionTime	: 0.5,		
+			navigation			: true,
+			controls			: true,
 			stopText			: "Pause",
 			playText			: "Play",
 			nextText			: "Next",
 			previousText		: "Previous",
-			buildNavigation		: true,
-			navElements			: ".proto-navigation li",
-			buildControls		: true,
-			stopOnHover			: true,
-			captions			: false,
-			captionsElement		: '.slide-caption',
-			timer				: true
+			pauseOnHover		: true
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
@@ -97,6 +93,7 @@ var protoShow = Class.create({
 		this.setupSlides();
 		this.setupControls();
 		this.setupNavigation();
+		this.stopOnHover();
 
 		// let's get things going!				
 		this.play();
@@ -209,10 +206,12 @@ var protoShow = Class.create({
 				_this.toggleAnimating(false);
 				_this.currentSlideEle.removeClassName('active-slide');
 				_this.nextSlideEle.addClassName('active-slide');
-				
+				_this.updateNavigation(_this.currentSlideID, _this.nextSlideID);
+
+
 				_this.currentSlideID 	= 	_this.nextSlideID;	// update current slide to be the slide we're just moved to
 				_this.currentSlideEle	=	_this.slides[_this.nextSlideID];
-
+				
 
 				if (_this.autoPlay && _this.running ) {
 					//_this.play();
@@ -254,7 +253,7 @@ var protoShow = Class.create({
 		new Effect.Morph(_this.showEle, {
 			style: {
 				left: -leftPos + 'px'
-			}, // CSS Properties
+			}, 
 			duration	: opts.transitionTime,
 			afterFinish	: function() {
 				return opts.transitionFinish();
@@ -262,6 +261,8 @@ var protoShow = Class.create({
 		});
 
 	},
+
+
 
 
 	/* SETUP METHODS
@@ -322,6 +323,10 @@ var protoShow = Class.create({
 		// Role: Setup controls
 
 		var _this = this;
+
+		if (!this.options.controls) {
+			return false;
+		}
 	
 		this.protoControls	=  this.element.down('.proto-controls');    // Stop/Forward/Back buttons
 
@@ -395,7 +400,11 @@ var protoShow = Class.create({
 	setupNavigation: function() {
 		// Role: Setup Navigation
 		var _this = this;
-	
+		
+		if (!this.options.navigation) {
+			return false;
+		}
+
 		this.protoNavigation	=  this.element.down('.proto-navigation');    
 
 		if (typeof this.protoNavigation==="undefined" ) {
@@ -408,9 +417,10 @@ var protoShow = Class.create({
 			});
 
 			this.element.insert(navEle,'bottom');
-			this.protoNavigation	=  this.element.down('.proto-navigation');
-			this.protoNavigation.down('li').addClassName('current-slide');
+			this.protoNavigation	=  this.element.down('.proto-navigation');			
 		}
+
+		this.protoNavigation.down('li').addClassName('current-slide');
 
 		// define "lock" variable to stop abuse of controls
 		var handlingClick	= false;
@@ -425,12 +435,32 @@ var protoShow = Class.create({
 
 			handlingClick = true;
 		
-			var index = element.hash.substr(1,2);
-			console.info(index);
+			var index = element.hash.substr(1,2);	// get the slide ID from the href hash (eg: #3)
 			_this.gotoSlide(index-1);
+
 			/*remove the "lock" variable*/
 			handlingClick = false;
 		});
+	},
+
+	updateNavigation: function(current,next) {
+		if (typeof this.protoNavigation !== "undefined" ) {
+			this.protoNavigation.select('li')[current].removeClassName('current-slide');
+			this.protoNavigation.select('li')[next].addClassName('current-slide');
+		}
+	},
+
+
+	stopOnHover: function() {
+		var _this = this;
+
+		if (this.options.pauseOnHover) {						
+			this.element.down('.show').observe('mouseenter',function() {
+				_this.stop();
+			}).observe('mouseleave',function() {								
+				_this.play();					
+			});
+		}
 	},
 
 
