@@ -16,7 +16,7 @@
 	position: absolute;
 	top: 0;
 	left: 0;
-	z-index: 99;
+	z-index: 90;
 	height: 100%;
 }
 
@@ -29,6 +29,7 @@
 	left: 0;
 	bottom: 0;
 	right: 0;
+	z-index: 120;
 	padding: 1em 10px;
 	background-color: rgba(0,0,0,.4);
 	color:#fff;
@@ -80,6 +81,7 @@
 	left: 0;
 	width: 10%;
 	height: 100%;
+	z-index: 110;
 }
 
 .proto-controls .forward {

@@ -49,7 +49,7 @@ var protoShow = Class.create({
 			nextText			: "Next",
 			previousText		: "Previous",
 			captions			: false, 
-			pauseOnHover		: true,
+			pauseOnHover		: false,
 			keyboardControls	: true 
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
@@ -152,6 +152,7 @@ var protoShow = Class.create({
 			_this.masterTimer && _this.masterTimer.stop();
 			_this.masterTimer = null;
 		}
+
 	},
 
 	forward: function(transTime) {
@@ -186,7 +187,6 @@ var protoShow = Class.create({
 		
 		var _this = this;
 
-		//this.stop();
 		// First thing's first, we hault the show whatever the circumstances
 		this.toggleMasterTimer(false); 
 
@@ -201,8 +201,8 @@ var protoShow = Class.create({
 
 		this.toggleAnimating(true);		
 		this.setNextIndex(next);  // set this.nextSlideID correctly		
-		this.reportSlides();
-
+		
+		_this.updateNavigation(_this.currentSlideID, _this.nextSlideID);
 
 		this.transitionType(this.currentSlideEle,this.nextSlideEle, {
 			transitionTime		:   transTime,
@@ -210,7 +210,7 @@ var protoShow = Class.create({
 				_this.toggleAnimating(false);
 				_this.currentSlideEle.removeClassName('active-slide');
 				_this.nextSlideEle.addClassName('active-slide');
-				_this.updateNavigation(_this.currentSlideID, _this.nextSlideID);
+				
 				_this.updateCaptions(_this.nextSlideEle);
 
 				_this.currentSlideID 	= 	_this.nextSlideID;	// update current slide to be the slide we're just moved to
@@ -218,7 +218,6 @@ var protoShow = Class.create({
 				
 
 				if (_this.autoPlay && _this.running ) {
-					//_this.play();
 					// if we're autoplaying and we're not explicity stopped
 					// otherwise show Master Timer is not permitted to restart itself
 					_this.toggleMasterTimer(true);	
@@ -263,11 +262,9 @@ var protoShow = Class.create({
 				return opts.transitionFinish();
 			}
 		});
-
 	},
 
-
-
+	
 
 	/* SETUP METHODS
 	------------------------------------------------*/
@@ -470,9 +467,7 @@ var protoShow = Class.create({
 	updateCaptions: function(slide) {
 		if (!this.options.captions) {
 			return false;
-		}
-		
-		
+		}		
 
 		var nextCaption = slide.down('img').readAttribute('alt');
 		if (nextCaption.replace(/^\s*|\s*$/g,'').length) {		// check that the attribute has some content (not just spaces)					
@@ -496,6 +491,8 @@ var protoShow = Class.create({
 			}).observe('mouseleave',function() {								
 				_this.play();					
 			});
+
+			
 		}
 	},
 
@@ -582,11 +579,10 @@ var protoShow = Class.create({
 	/* LOGGING FUNCTIONS
 	------------------------------------------------*/
 
-	reportSlides: function() {
-		console.log("Current slide: " + this.currentSlideID);
-		console.log("Next slide: " + this.nextSlideID);	
-
-	},
+	/*reportSlides: function() {
+			console.log("Current slide: " + this.currentSlideID);
+			console.log("Next slide: " + this.nextSlideID);	
+		},*/
 
 
 
