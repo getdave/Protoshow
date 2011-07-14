@@ -1,5 +1,5 @@
 /*  ProtoShow JavaScript slide show, 
- *	v 0.6 (alpha) - 12/06/11
+ *	v 0.7 (beta) - 12/06/11
  *  Copyright(c) 2011 David Smith (web: http://www.aheadcreative.com; twitter: @get_dave)
  *
  *  This work is licenced under the Creative Commons Attribution-No Derivative Works 3.0 Unported License. 
@@ -11,6 +11,15 @@
  *
  *--------------------------------------------------------------------------*/
 
+/*
+
+Show "swap" process
+
+1) this.play() initialises a timer to run every "x" seconds
+
+
+
+*/
 
 
 
@@ -18,8 +27,8 @@ if(typeof Prototype=='undefined' || typeof Scriptaculous =='undefined') {
 	throw("Protoshow.js requires the Prototype & Scriptaculous  JavaScript framework");
 } else {
 
-
 var protoShow = Class.create({
+
 	initialize: function(element,options) {
 		
 		// Default options
@@ -27,329 +36,319 @@ var protoShow = Class.create({
 			selector			: ".slide",					
 			interval			: 3000,
 			initialSlide		: 1,
-			mode				: 'forward',
-			autoplay			: true,
+			mode				: "forward",
+			autoPlay			: true,
 			autoRestart			: true,
+			transitionType		: "fade",
 			transitionTime		: 1.5,
-			manTransitionTime	: 0.5,
+			manTransitionTime	: 0.5,		
+			navigation			: true,
+			controls			: true,
 			stopText			: "Pause",
 			playText			: "Play",
-			forwardText			: "Next",
+			nextText			: "Next",
 			previousText		: "Previous",
-			buildNavigation		: true,
-			navElements			: ".proto-navigation li",
-			buildControls		: true,
-			stopOnHover			: true,
-			captions			: false,
-			captionsElement		: '.slide-caption',
-			timer				: true
+			captions			: false, 
+			pauseOnHover		: false,
+			keyboardControls	: true 
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
-
 		
 
 
-
-		// Get & set the variables we require for use
-
+		// get/set various options
 		this.element 			= 	$(element);											// DOM element that contains the slideshow
 		this.slides 			= 	this.element.select(this.options.selector);			// Elements that are to be the "Slides"		
-		this.interval 			= 	this.options.interval;								// Interval delay between swapping the Slides
-		this.slideID 			= 	this.options.initialSlide - 1;						// Numeric ref of the initial Slide (collection index)
-		this.initialElement 	= 	this.slides[this.slideID];							// DOM ref to the initial Slide
-		this.autoplay			= 	this.options.autoplay;								// Auto start the slide show?
-		this.autoRestart		=	this.options.autoRestart;							// Auto restart after manually going forward/backward
-		this.restart			=	false;
-		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
-		this.transitionTime 	= 	this.options.transitionTime;						// Speed of animation
-		this.manTransitionTime	=	this.options.manTransitionTime;						// Speed of animation when triggered manually
-		this.stopOnHover		=	this.options.stopOnHover;							// Stop the show when hovering?
-		this.stopText 			=	this.options.stopText;								
+		this.slidesLength		=	this.slides.size();		// Total number of Slides
+		this.interval 			= 	this.options.interval;	
+		this.transitionType		=	this.options.transitionType;
+		this.transitionTime		=	this.options.transitionTime;		
+		this.manTransitionTime	=	this.options.manTransitionTime;
+		this.currentSlideID 	= 	this.options.initialSlide - 1;		
+		this.nextSlideID		=	this.currentSlideID + 1;
 		this.playText			=	this.options.playText;
-		this.forwardText		=	this.options.forwardText
+		this.nextText			=	this.options.nextText;
 		this.previousText		=	this.options.previousText;
-		this.buildControls		= 	this.options.buildControls;
-		this.captions			=	this.options.captions;
-		this.captionsElement	=	$$(this.options.captionsElement)[0];
-		this.navElements		=	this.options.navElements;
-		this.timer				=	this.options.timer;
+		this.stopText			=	this.options.stopText;
+		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
+		this.autoPlay			=	this.options.autoPlay;
+
 		
+
+
+
+		// define variables before use
+		this.running			=	false;
+		this.masterTimer		=	false;
+		this.animating			=	false;	// boolean for "animating" status
+		this.loopCount			=	0;
+		this.slideWidth			=	0;
+		this.slideHeight		=	0;
+		this.slideIntervals		=	[];
+		this.currentSlideEle	=	this.slides[this.currentSlideID];
+		this.nextSlideEle		=	this.slides[this.nextSlideID];
+
+
+		//run some initial setup
+		this.setupTransitions(this.options.transitionType);
+		this.setupSlides();
+		this.setupControls();
+		this.setupNavigation();
+		this.setupCaptions();
+		this.setupKeyboardControls();
+		this.stopOnHover();
+
+		// let's get things going!				
+		this.play();
 		
-		
-		if ((this.slides.size() > 1)) {	// check there is more than 1 slide
-			this.setupTimer();
-			
-		
-			// PRE-LAUNCH CHECKLIST //
-			this.slidesLength									= this.slides.size();		// Total number of Slides
-			this.animating 										= false;					// Set base "animating" flag
-			this.createControls();															// Build and/or observe controls
-			this.createNavigation();														// Build and/or observe navigation
-			this.slides.invoke('hide');														// Hide all slides...
-			this.initialElement.show().addClassName('active-slide');						// Ensure the initial Slide has active class
-			this.createCaptions();	
-			this.pauseOnHover();		//	decides if stopOnHover is set an if so pauses show on :hover 
-			
-			this.isPlaying	= false;	// 	explicity set isPlaying status 
-			this.updateControls();		// 	check controls are showing correct status
-			
-			
-			
-			
-			if ( this.autoplay) {
-				// If we are auto playing then trigger the start of the slideshow
-				this.play(this.mode);
-			}		
-	
-		}
 	},
+
+
+	/* DIRECTIONAL CONTROLS
+	------------------------------------------------*/
+
 	
-	
-	clearTimer: function() {
-		// Simply clears the global Timer. Different to stop(); as doesn't affect this.isPlaying variable
-		clearTimeout(this.runShow);
-	},	
 
 	play: function() {
-		//	Plays the show
-		if(this.runShow) {
-			this.clearTimer();	// clears any left over setTimeout in global
-		}	
-				
-		this.runShow = setTimeout(this.mode.bind(this),this.interval);		// we set the Show running but this doesn't control the looping
-		this.isPlaying = true;
+		// Role: Starts the show and initialises master timer
+		
+		var _this = this;	
+		
+		this.running = true;
+
+		this.toggleMasterTimer(true);	
 		this.updateControls(true);
-		if (this.timer) {
-			this.runTimer();
-		}
-	},		
-	
-	
+		
+		
+	},
+
 	stop: function() {
-		//console.info("stopping");
-		// Totally stops the show  - only to be used for stopping, not clearing the timer (see this.clearTimer)
-		document.fire("protoShow:stopped");	
-		this.isPlaying = false;		
-		this.clearTimer();
-		this.stopTimer();		
-		this.updateControls(false);		
-	},
-	
-	forward: function() {
-		// Runs slideshow "forwards"
-		this.goMaster( this.slideID + 1 );
-	},
-	
-	backward: function(){
-		// Runs slideshow "backwards"
-		this.goMaster( this.slideID - 1 );
-	},
-	
-	random: function() {
-		// Runs slideshow randomly (based on http://www.javascriptkit.com/javatutors/randomnum.shtml)
-		var randomnumber = Math.floor(Math.random() * this.slidesLength);
-		//console.log("Random number: " + randomnumber);
-		if (randomnumber == this.slideID) {
-			randomnumber++;
-		}		
-		this.goMaster( randomnumber );
-	},
-	
-	
-	goForward: function() {
-		this.clearTimer();								// stop the Timer
-		var storeTransition = this.transitionTime;		// store the original Transition time
-		this.transitionTime	= this.manTransitionTime;	// set a temporary "manual" fast transition
+		// Completely stops the show and clears the master timer
+		var _this = this;
 		
 		
-		if (!this.autoRestart) {
-			// Set variable switch to stop autoRestarting
-			this.noRestart = true;
-			this.forward();	
-			this.stop();
-		} else {
-			this.forward();	
-		}										// go forward 1 slide
+		this.running = false;
+
+		this.toggleMasterTimer(false);
+		this.updateControls(false);
 		
-		if (this.options.mode != "random") {			// if play mode is "random" then don't alter the mode
-			this.mode = this.forward;					// ensure we go in the right direction
-		}
-		this.transitionTime	= storeTransition;			// reset the Transition time to the original
-	},
-	
-	goBackward: function(){
-		this.clearTimer();
-		var storeTransition = this.transitionTime;
-		this.transitionTime	= this.manTransitionTime;
-		if (!this.autoRestart) {
-			// Set variable switch to stop autoRestarting
-			this.noRestart = true;
-			this.backward();	
-			this.stop();
-		} else {
-			this.backward();	
-		}
-		if (this.options.mode != "random") {			// if play mode is "random" then don't alter the mode
-			this.mode = this.backward;					// ensure we go in the right direction
-		}
-		this.transitionTime	= storeTransition;
-	},
-	
-	goToSlide: function(slide) {
-		this.clearTimer();
-	
-		var storeTransition = this.transitionTime;
-		this.transitionTime	= this.manTransitionTime;
-		var targetSlide = slide;
-		// Goes to a specific slide
-		this.goMaster( targetSlide );
-		this.transitionTime	= storeTransition;
+		
 	},
 
-	
-	goMaster: function( imageShow ) {
-		// Master direction: decides what args to pass to swapSlide();
+	toggleMasterTimer: function(boolean) {
+		var _this = this;
+
+		if (boolean) {
+			// Check if custom interval has been defined by user as data attribute in HTML
+			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
+			
+			// Set Master time which controls progress of show			
+			this.masterTimer	=	new PeriodicalExecuter(function(pe) {
+			  	_this.mode();		    
+			}, slideInterval/1000);
+			this.loopCount++;
+		} else {
+			_this.masterTimer && _this.masterTimer.stop();
+			_this.masterTimer = null;
+		}
+
+	},
+
+	forward: function(transTime) {
+		// Role: Runs slideshow "forwards"
+		
+		this.goMaster( this.currentSlideID + 1, transTime);
+	},
+
+	backward: function(transTime) {
+		// Role: Runs slideshow "backwards"
 				
-		var imageShow = imageShow;		// Image to be show (args passed from goNext/goPrevious...etc)
-		var imageHide = this.slideID;	// Image to be hidden
-		
-		//console.log("imageShow: " + imageShow);
-		//console.log("imageHide: " + imageHide);
-		
-		
-		if ( (imageShow != imageHide) && (!this.animating) ) {		// check current and next slides aren't the same and that we're not already animating
-			// Logic to get bounds and ensure everything moves forward/backward correctly
-			if (imageShow >= this.slidesLength) {	// if imageShow is outside max length of slides then restart from the first slide 
-				this.swapSlide(imageHide,0);	
-				this.slideID = 0;					
-			} else if (imageShow < 0) {		// else if imageShow is less than 0 then restart show from the last slide
-				this.swapSlide(imageHide,this.slidesLength-1);	
-				this.slideID = this.slidesLength-1;				
-			} else {		// otherwise just swap slides and then set the current slide to be
-				this.swapSlide(imageHide,imageShow);		
-				this.slideID = imageShow;
-			}
-			//console.info("Current slideID is: " + this.slideID);
-			//console.log("===");
-		}
+		this.goMaster( this.currentSlideID - 1, transTime );	
 	},
 
-	
-	swapSlide: function(x,y) {
-		//	Animates between 2 slides "x" & "y"		
+	next: function() {
+		this.forward(this.manTransitionTime);
+	},
+
+	previous: function() {
+		this.backward(this.manTransitionTime);
+	},
+
+	gotoSlide: function(slide,transTime) {
+		if (slide === this.currentSlideID) {
+			return false;
+		}
+		this.goMaster( slide, this.manTransitionTime );	
+	},
+
+	goMaster: function(next,transTime) {
+		// Role: Master function - controls delegation of slide swapping	
 		
-		var activeSlide = this.slides[x];	// x = currently active slide
-		var nextSlide = this.slides[y];		// y = next slide
+		var _this = this;
+
+		// First thing's first, we hault the show whatever the circumstances
+		this.toggleMasterTimer(false); 
+
+		if(this.isAnimating()) {
+			return false;
+		}
+
+		// Set the transistion speed to transTime arg (if set) else fallback to standard transitionTime
+		var transTime = (transTime) ? transTime : _this.transitionTime;
+
 		
-		this.animating = true;		// set the "animating" flag
-		nextSlide.show();			// make the next slide visible (CSS keeps it hidden underneath current slide)
-		activeSlide.fade({			// transition out current slide
-			beforeStart	: function() {
-							document.fire("protoShow:transitionStarted");
-							this.element.addClassName("animating");
-						}.bind(this),
-			duration	: this.transitionTime,
-			afterFinish	: this.cleanup.bind(this, activeSlide, nextSlide)	// call cleanup function
+
+		this.toggleAnimating(true);		
+		this.setNextIndex(next);  // set this.nextSlideID correctly		
+		
+		_this.updateNavigation(_this.currentSlideID, _this.nextSlideID);
+
+		this.transitionType(this.currentSlideEle,this.nextSlideEle, {
+			transitionTime		:   transTime,
+			transitionFinish	:	function() {	// pass a callback to ensure play can't resume until transition has completed
+				_this.toggleAnimating(false);
+				_this.currentSlideEle.removeClassName('active-slide');
+				_this.nextSlideEle.addClassName('active-slide');
+				
+				_this.updateCaptions(_this.nextSlideEle);
+
+				_this.currentSlideID 	= 	_this.nextSlideID;	// update current slide to be the slide we're just moved to
+				_this.currentSlideEle	=	_this.slides[_this.nextSlideID];
+				
+
+				if (_this.autoPlay && _this.running ) {
+					// if we're autoplaying and we're not explicity stopped
+					// otherwise show Master Timer is not permitted to restart itself
+					_this.toggleMasterTimer(true);	
+				}				
+			}
+		});		
+	},
+
+
+	/* TRANSITION FUNCTIONS
+	------------------------------------------------*/
+
+	fade: function(current,next,opts) {
+		// Role: Transition function
+		// Type: Fade - fades slides in and out
+
+		var _this = this;
+
+		next.show();
+		current.fade({
+			duration	: opts.transitionTime,
+			afterFinish	: function() {
+				return opts.transitionFinish();
+			}
+		});	
+	},
+
+	slide: function(current,next,opts) {
+		// Role: Transition function
+		// Type: Slider - slides slides across the screen
+		var _this = this;			
+		
+		var leftPos = this.slideWidth * this.nextSlideID; 
+		
+		
+		new Effect.Morph(_this.showEle, {
+			style: {
+				left: -leftPos + 'px'
+			}, 
+			duration	: opts.transitionTime,
+			afterFinish	: function() {
+				return opts.transitionFinish();
+			}
 		});
-		this.updateNav(x, y);	// update slide navigation
-		this.updateCaptions(y);
-		
-		
 	},
-	
-	
-	cleanup: function(active,next) {
-		this.runTimer();
-		document.fire("protoShow:transitionFinished");
-		// Adds and Removes "active-slide" class once transistion animation is complete
-		$(active).removeClassName('active-slide');
-		$(next).addClassName('active-slide');
-		this.element.removeClassName("animating");
-		this.animating = false;		// Resets the "animating" flag
-		if ( (!this.noRestart) && (this.isPlaying !== false) ) {		// test to check show has not been explicitly "Stopped"
-			this.play();	// loop the show again
-		}
-		
-	},
-	
-	updateNav: function(active,next) {
-		if (this.protoNav != undefined) {
-			
-			this.protoNav[active].removeClassName('current-slide');
-			this.protoNav[next].addClassName('current-slide');
-		}
-	},
-	
-	updateControls: function(status) {
-		
-			if(status !== true) status = false; // Default if not supplied is false
-								
-			var startStop = this.protoControls.down('.start-stop a');
 
-			// Updates the status of the Play/Pause button		
-			if (status) {
-				// The show has been started so update the button to "Pause"
-				startStop.update(this.stopText).writeAttribute('title','this.stopText the slide show').addClassName('pause').removeClassName('play');
-			} else {			
-				// The show has been stopped so update the button to "Play"
-				startStop.update(this.playText).writeAttribute('title','this.playText the slide show').addClassName('play').removeClassName('pause');
+	
+
+	/* SETUP METHODS
+	------------------------------------------------*/
+
+	setupSlides: function() {		
+		var _this = this;
+
+		
+
+		// Get and set user defined custom intervals
+		this.slides.each(function(e, index) {	
+			
+
+			if (_this.options.transitionType !== "slide") {
+				e.hide();		
 			}
-		
+			var slideInt = e.readAttribute('data-slide-interval');			
+			slideInt = (slideInt.blank()) ? undefined : slideInt;	// check slideInt is not a blank string
+
+			_this.slideIntervals.push(slideInt);	// push intervals into array for use later
+		});		
+
+		// Ensure first slide is visible and has active class
+		this.slides[this.currentSlideID].show().addClassName('active-slide');
 	},
 	
-	
-	createNavigation: function() {
-		// Setup numbered navigation
-		if ( (this.options.buildNavigation) && (!this.element.select('.proto-navigation').length) ) {	// check doesn't already exist in the DOM
-			// If set in options then build the nav via javascript
-			var navEle		=	new Element('ol', { 'class': 'proto-navigation'});
+	setupTransitions: function(transType) {
+		// Role: Setup basics for transitions
+		var _this = this;
+		
+		if (typeof(transType) == "function") {	// user has defined custom transition function
+			// If function then user has passed in custom transition function to be used
+			this.transitionType		=	transType;
+			this.element.addClassName('transition-custom');
+		} else {	// it's a string
+			this.transitionType		=	this[transType];			
+			this.element.addClassName('transition-' + transType);
 			
-			var navTemplate = 	new Template('<li><a href="##{number}" title="Skip to Slide #{number}">#{number}</a></li>');
+			if (transType === "slide") {
 
-			this.slides.each(function(e,index) {		// for each slide in the show create a Nav <li> using the Template above
-				var li = navTemplate.evaluate({number: index+1});
-				navEle.insert(li,'bottom');
-			});
+				this.showWindow 	=	this.element.down('.show').wrap('div', { 'class': 'show-window' });
+				this.showEle		=	this.showWindow.down('.show');
+				var slideLayout 	= 	this.slides[0].getLayout();
+				this.slideWidth  	= 	slideLayout.get('width');
+				this.slideHeight 	= 	slideLayout.get('height');
 
-			this.element.insert(navEle,'bottom');
-		}
-		
-		
-		if (this.element.select(this.navElements).length) {
-			this.protoNav	= 	this.element.select(this.navElements);		// Select the navigation anchors <a>
-			this.protoNav[this.slideID].addClassName('current-slide');		// Ensure the initial Nav item has "current-slide" class
 
-			// Adds observers for Slide Show navigation						
-			this.protoNav.each(function(e, index) {	//	itterate and pass element & element's index
-				this.navObserve(e,index);		//	pass element & element index
-			}.bind(this));
-		}
+				this.showWindow.setStyle({
+					width	: 	_this.slideWidth + "px",
+				  	height	: 	_this.slideHeight + "px"
+				});
+			}		
+		}	
 	},
 
+	setupControls: function() {
+		// Role: Setup controls
+
+		var _this = this;
+
+		if (!this.options.controls) {
+			return false;
+		}
 	
-	
-	createControls: function() {	
-			
 		this.protoControls	=  this.element.down('.proto-controls');    // Stop/Forward/Back buttons
-				
+
 		if (typeof this.protoControls==="undefined" ) {
+
 			var controlsEle		 =	new Element('ol', { 'class': 'proto-controls'});
 			var controlsTemplate = 	new Template('<li class="#{htmlclass}"><a href="javascript:void(0)" title="#{title}">#{text}</a></li>');
 			
 			var startStop		 = 	controlsTemplate.evaluate({
-										htmlclass: "start-stop",
+										htmlclass: "proto-control start-stop",
 										text:  this.playText,
 										title: "Pause the show"
 									});
 			var backward		 = 	controlsTemplate.evaluate({
-										htmlclass: "backward",
+										htmlclass: "proto-control backward",
 										text:  this.previousText,
 										title: "Go to Previous slide and play backwards"
 									});
 			var forward			 = 	controlsTemplate.evaluate({
-										htmlclass: "forward",
-										text:  this.forwardText,
+										htmlclass: "proto-control forward",
+										text:  this.nextText,
 										title: "Go to Next slide and play forwards"
 									});
 			
@@ -360,175 +359,241 @@ var protoShow = Class.create({
 		} 
 
 		// If the controls already exists in the DOM
-		var startStop    	=	this.protoControls.down('.start-stop');
-		var forward      	=	this.protoControls.down('.forward');
-		var backward     	=	this.protoControls.down('.backward');
-		
-		
-		startStop.observe('click',function(e) {
+		this.controlStartStop    	=	this.protoControls.down('.start-stop');
+		this.controlForward      	=	this.protoControls.down('.forward');
+		this.controlBackward     	=	this.protoControls.down('.backward');
 
-			e.stop();
-			if(this.isPlaying !== true) this.isPlaying = false; // if not "true" then *make sure* it's "false"
-			// Work out whether we're "Playing" and react accordingly. 
-			if (this.isPlaying) {
-				this.stop();	//  if we're "Playing" then stop the show				
-			} else {
-				this.play();	// else if we're not "Playing" then start the show 				
+
+		// define "lock" variable to stop abuse of controls
+		var handlingClick	= false;
+
+		this.protoControls.on("click", ".proto-control", function(event, element) {
+			event.stop();
+
+			// make sure we're not processing multiple click events 
+			if (handlingClick) {
+				return false;
 			}
-		}.bind(this));
-		
-		forward.observe('click', function(e) {
-			e.stop();
-			this.goForward();
-		}.bind(this));
-		
-		backward.observe('click',function(e) {
-			e.stop();
-			this.goBackward();
-		}.bind(this));
-		
-	},
 
-	
-	
-	
-	navObserve: function(e,index) {
-		// Temp method to add Observers to nav items
-		var i = index;
-		e.observe('click',function(event) {
+			handlingClick = true;
 			
-			if (!event.element().hasClassName('allow-click')){ // allow designated <a> to be clicked if nav element is an anchor as well
-				event.stop();
-				this.goToSlide(i);	// when clicked go to slide with index "i"
+			
+			
+			if(element === _this.controlForward) {
+				_this.next();
+			} else if (element === _this.controlBackward) {
+				_this.previous();
+			} else {	
+					
+				if (_this.running) {
+					_this.stop();	//  if we're "Playing" then stop the show				
+				} else {
+					_this.play();	// else if we're not "Playing" then start the show 				
+				}
 			}
-		}.bind(this));
+			/*remove the "lock" variable*/
+			handlingClick = false;
+		});
+		
 	},
-	
-	
-	pauseOnHover: function() {
+
+
+	setupNavigation: function() {
+		// Role: Setup Navigation
 		var _this = this;
-		if (this.stopOnHover) {
-			// If true then when mouse enters the show *container* stop the show and when leaves then restart
-			
-			
+		
+		if (!this.options.navigation) {
+			return false;
+		}
+
+		this.protoNavigation	=  this.element.down('.proto-navigation');    
+
+		if (typeof this.protoNavigation==="undefined" ) {
+			var navEle		=	new Element('ol', { 'class': 'proto-navigation'});			
+			var navTemplate = 	new Template('<li><a href="##{number}" title="Skip to Slide #{number}">#{number}</a></li>');
+
+			this.slides.each(function(e,index) {		// for each slide in the show create a Nav <li> using the Template above
+				var li = navTemplate.evaluate({number: index+1});
+				navEle.insert(li,'bottom');
+			});
+
+			this.element.insert(navEle,'bottom');
+			this.protoNavigation	=  this.element.down('.proto-navigation');			
+		}
+
+		this.protoNavigation.down('li').addClassName('current-slide');
+
+		// define "lock" variable to stop abuse of controls
+		var handlingClick	= false;
+		
+		this.protoNavigation.on("click", "a", function(event, element) {
+			event.stop();
+
+			// make sure we're not processing multiple click events 
+			if (handlingClick) {
+				return false;
+			}
+
+			handlingClick = true;
+		
+			var index = element.hash.substr(1,2);	// get the slide ID from the href hash (eg: #3)
+			_this.gotoSlide(index-1);
+
+			/*remove the "lock" variable*/
+			handlingClick = false;
+		});
+	},
+
+	updateNavigation: function(current,next) {
+		if (typeof this.protoNavigation !== "undefined" ) {
+			this.protoNavigation.select('li')[current].removeClassName('current-slide');
+			this.protoNavigation.select('li')[next].addClassName('current-slide');
+		}
+	},
+
+	setupCaptions: function() {
+		var _this = this;
+
+		if (this.options.captions) {
+			var captionEle			=	new Element('div', { 'class' : 'slide-caption'});			
+			captionEle.hide();	
+			this.element.insert(captionEle,'bottom');
+			this.captionsElement	=	captionEle;
+			this.updateCaptions(_this.currentSlideEle);
+		}
+
+	},
+
+	updateCaptions: function(slide) {
+		if (!this.options.captions) {
+			return false;
+		}		
+
+		var nextCaption = slide.down('img').readAttribute('alt');
+		if (nextCaption.replace(/^\s*|\s*$/g,'').length) {		// check that the attribute has some content (not just spaces)					
+			if(!this.captionsElement.visible()) {
+				// just check that the element is visible
+				this.captionsElement.show();
+			}				
+			this.captionsElement.update(nextCaption);	
+		} else {	// if no caption is found then hide the caption element
+			this.captionsElement.hide();
+		}
+	},
+
+
+	stopOnHover: function() {
+		var _this = this;
+
+		if (this.options.pauseOnHover) {						
 			this.element.down('.show').observe('mouseenter',function() {
 				_this.stop();
+			}).observe('mouseleave',function() {								
+				_this.play();					
+			});
 
-				//console.log("Hovered");
-			}).observe('mouseleave',function() {
-				if ( _this.autoRestart) {
-					// Trigger the start of the slideshow					
-					_this.play();
-					//console.log("Unhovered");
-				}	
-			}.bind(this));
-		}
-	},	
-	
-	createCaptions: function() {
-		
-		if (this.captions) {		
 			
-			if (!this.captionsElement) {
-				var captionEle			=	new Element('p', { 'class' : 'slide-caption'});
-				
-				//var captionTag			=	new Element('p');
-				this.element.insert(captionEle,'bottom');
-				//captionEle.insert(captionTag);			
-				this.captionsElement		=	captionEle;
-			}						
-			
-			this.updateCaptions(this.slideID);
-		}
-			
-		
-	},
-	
-	updateCaptions: function(next) {		
-		if (this.captions) {
-			var nextCaption = this.slides[next].down('img').readAttribute('alt');	
-			if (nextCaption.replace(/^\s*|\s*$/g,'').length) {		// check that the attribute has some content (not just spaces)
-					
-				if(!this.captionsElement.visible()) {
-					// just check that the element is visible
-					this.captionsElement.show();
-				}				
-				this.captionsElement.update(nextCaption);	
-			} else {	// if no caption is found then hide the caption element
-				this.captionsElement.hide();
-			}		
 		}
 	},
-	
-	setupTimer: function() {	
-		/* Create timer <canvas> element, get 2D Context and insert into DOM */
-		this.slideTimer = document.createElement('canvas');
-		if (this.slideTimer.getContext && this.slideTimer.getContext('2d')) { // test for Canvas support
-			this.slideTimer.writeAttribute('class','proto-timer');	
-			this.slideTimer.width = 30;
-			this.slideTimer.height = 30;
-			this.element.insert(this.slideTimer,'bottom');		
-			this.timerCtx = this.slideTimer.getContext('2d');
+
+	setupKeyboardControls: function() {
+		// 39 = right arrow
+		// 37 = left arrow
+
+		if (!this.options.keyboardControls) {
+			return false;
+		}
+
+		var _this = this;
+		document.observe('keydown', function(key) {
+			var keyCode = key.keyCode;
+
+			if (keyCode === 37 || keyCode === 39) {
+				if (keyCode === 37) {
+		        	_this.previous();
+		        } else if (keyCode === 39) {
+		        	_this.next();
+		        }
+			} else {
+				return false;
+			}
+        }); 	
+	},
+
+
+	/* UTILITY FUNCTIONS
+	------------------------------------------------*/
+
+	isPlaying: function() {
+		return this.masterTimer != null;
+	},
+
+	isAnimating: function() {
+		return this.animating;
+	},
+
+	toggleAnimating: function(boolean) {
+		// Role: toggles var to say whether animation is in progress and manipulates DOM
+		this.animating = boolean;
+		if (boolean) {
+			this.element.addClassName("animating");	
 		} else {
-			this.timer = false;
+			this.element.removeClassName("animating");
 		}
 	},
-	
-	
-	runTimer: function() {
-		if (this.timer && (this.animating !== true)) {
-			// use Epoch time to ensure code executes in time specified
-			// borrowed from Emile JS http://script.aculo.us/downloads/emile.pdf
-			var start = (new Date).getTime();
-			var duration = this.interval;
-			var finish	= start+duration;
-			var angleStart = 0;
-			
-			var timerInternal = new PeriodicalExecuter(function(pe) {
-				var time = (new Date).getTime();
-				var pos  = time>finish ? 1 : (time-start)/duration;			
-			
-				if (this.isPlaying) {				
-					this.drawArc(0,Math.floor((360*pos)),'rgba(255,255,255,1)',true);
-				}
 
-				if((!this.isPlaying) || this.animating || time>finish) {	// if we are stopped or animating or we are finished then stop and clear the timer			
-					pe.stop();
-					//console.log(this.slideTimer);
-					this.slideTimer.width = this.slideTimer.width;
-				}
-				
-			}.bind(this),duration/100000);	
-		}
-	},
-	
-	
-	resetTimer: function() {
-		//console.log("Resetting timer");
-		this.slideTimer.width = this.slideTimer.width;         // clears the canvas 	
+	setNextIndex: function(next) {
+		// Role: Decides on direction and ensures within bounds
 		
+		if(next === undefined) { // Ensure "next" has a value
+			next = this.currentSlideID+1;
+		} 
+
+
+
+		// Ensure we're within bounds
+		if (next >= this.slidesLength) {
+			next = 0;
+		} else if (next < 0 ){
+			next = this.slidesLength-1;
+		}
+
+		this.nextSlideID = next;	
+		this.nextSlideEle = this.slides[this.nextSlideID];
 	},
-	
-	
-	drawArc: function(startAngle,endAngle,strokeStyle,shadow) {
-		//this.resetTimer();		
-		this.drawingArc = true;		
-		var ctx = this.timerCtx;			
-		ctx.beginPath();		
-		ctx.strokeStyle = strokeStyle;
-		ctx.lineWidth = 3;	
-		ctx.arc(15,15,10, (Math.PI/180)*(startAngle-90),(Math.PI/180)*(endAngle-90), false); 
-		ctx.stroke();	
-		this.drawingArc = false;		
+
+	updateControls: function(status) {
+		var _this = this;
+		// Role: Updates the status of the Play/Pause button		
+		if (status) {			// The show has been started so update the button to "Pause"
+			this.controlStartStop.down('a').update(_this.stopText);
+		} else {			
+			// The show has been stopped so update the button to "Play"
+			this.controlStartStop.down('a').update(_this.playText);
+		}
 		
 	},
 
-	stopTimer: function(timerInternal) {	
-		this.resetTimer();
-		//console.log(timerInternal);
-		clearInterval(timerInternal);
+
+	
+	/* LOGGING FUNCTIONS
+	------------------------------------------------*/
+
+	/*reportSlides: function() {
+			console.log("Current slide: " + this.currentSlideID);
+			console.log("Next slide: " + this.nextSlideID);	
+		},*/
+
+
+
+
+	cc: function() {
+		// catches the comma
+	}
+
 		
-	}	
+
+	
 });
 
 Element.addMethods({

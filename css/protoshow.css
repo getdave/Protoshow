@@ -1,44 +1,176 @@
-* {
-	margin: 0;
-	padding: 0;
-}
+/* ####################################### */
+/* ########### STANDARD SETUP ############ */
+/* ####################################### */
 
-body {
-	font-size: 12px;
-	background-color: #f7f7f7;
-}
-
-
-
-.proto-show {
+.protoshow,
+.protoshow .show {
 	position: relative;
-	width: 900px;
-	height: 300px;
-	margin: 50px;
-	font-family: Arial, sans-serif;
-}
-
-.proto-show ul.show {
 	margin: 0;
 	padding: 0;
 	list-style: none;
-	height: 300px;
 	width: 900px;
-	position: relative;
--moz-box-shadow:0 0 10px #333333;
-	}
-
+	height: 300px;
+}
 
 .slide {
 	position: absolute;
 	top: 0;
 	left: 0;
+	z-index: 90;
+	height: 100%;
 }
 
-li.active-slide {
+.active-slide {
 	z-index: 100;
 }
 
+.protoshow .slide-caption {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	z-index: 100;
+	padding: 1em 10px;
+	background-color: #000;
+	background-color: rgba(0,0,0,.4);
+	color:#fff;
+}
+
+/* TRANSITION SLIDE
+------------------------------------------------*/
+
+.transition-slide .show-window {
+	overflow: hidden;
+	position: relative;
+}
+
+.transition-slide .show {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 999999px;
+}
+
+.transition-slide .slide {
+	position: static; /*overide*/
+	float: left;
+	display: block;
+}
+
+
+/* PROTO CONTROLS
+------------------------------------------------*/
+
+.proto-controls,
+.proto-navigation {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.proto-controls a:link,
+.proto-controls a:visited,
+.proto-navigation a:link,
+.proto-navigation a:visited {
+	display: block;
+	text-indent: -9999px;
+	overflow: hidden;
+}
+
+.proto-controls li {
+	position: absolute;
+	top: 50%;
+	margin-top: -36px;
+	left: 10px;
+	width: 10%;
+	height: 100%;
+	z-index: 110;
+}
+
+.proto-controls .forward {
+	right: 10px;
+	left: auto;
+}
+
+.proto-controls a {
+	width: 100%;
+	height: 61px;
+	background: url(/img/proto_controls_bg.png) no-repeat 0 0;
+	opacity: 0.2;
+	-moz-opacity: 0.2;
+	filter:alpha(opacity=20);
+}
+
+.proto-controls a:hover,
+.proto-controls a:focus {
+	opacity: 1;
+	-moz-opacity: 1;
+	filter:alpha(opacity=100);
+}
+
+.proto-controls .forward a {
+	background-position: 100% -90px;
+}
+
+
+/* PROTO NAVIGATION
+------------------------------------------------*/
+
+.proto-navigation {
+	position: absolute;
+  	top: 0;
+    right: 50%;
+    float: right;
+    z-index: 120;
+}
+
+.proto-navigation li {
+    float: left;
+    left: 50%;
+    padding: 12px 6px;
+    position: relative;
+
+}
+
+.proto-navigation a {
+	background-color: #fff;
+  	background-color: rgba(0,0,0,.2);
+    height: 8px;
+    text-decoration: none;
+  	 width: 8px;
+	-moz-border-radius:30px;
+	-webkit-border-radius:30px;
+	border-radius:30px;
+	-moz-box-shadow:    inset 0 1px 0 1px rgba(0,0,0,.1);
+	-webkit-box-shadow:    inset 0 1px 0 1px rgba(0,0,0,.1);
+	box-shadow:    inset 0 1px 0 1px rgba(0,0,0,.1);
+}
+
+.proto-navigation a:hover,
+.proto-navigation a:focus {
+	background-color: #999;
+}
+
+.proto-navigation .current-slide a {
+	background-color: #363F4E;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 .proto-navigation {
 	margin: 0;
 	padding: 0;
@@ -60,7 +192,7 @@ li.active-slide {
 	width: 8px;
 	height: 8px;
 	text-decoration: none;
-	background-color: rgba(255,255,255,0.5);    /*#E4E5E6;*/
+	background-color: rgba(255,255,255,0.5);    
 	border: 1px solid #090809;
 	color: #666;
 	text-indent: -9999px;
@@ -79,7 +211,7 @@ li.active-slide {
 
 .proto-navigation li.current-slide a:link,
 .proto-navigation li.current-slide a:visited {
-	background-color: rgba(30,30,30,0.9);/*#323232;*/
+	background-color: rgba(30,30,30,0.9);
 
 }
 
@@ -162,4 +294,4 @@ li.active-slide {
 	top: 10px;
 	right: 10px;
 	z-index: 9999;
-}
+}*/

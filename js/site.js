@@ -1,12 +1,18 @@
-﻿document.observe("dom:loaded", function() {
+﻿var myshow;
+
+Event.observe(window, "load", function() {
 	
-	/*var primaryShow = new protoShow('myshow1',{
-			interval	:	5000,
-			captions	: 	true
+	
+	/*var myshow = new protoShow('myshow1',{
+			interval		:	3000,
+			captions		: 	true,
+			transitionType	: 	"fade", 
+			pauseOnHover	:   true, 
+			cc				: 	false
 		});*/
 
 	$('myshow1') && $('myshow1').protoShow({
-		interval	:	5000,
+		interval	:	2000,
 		captions	: 	true
 	});
 	
