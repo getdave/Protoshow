@@ -48,7 +48,9 @@ var protoShow = Class.create({
 			playText			: "Play",
 			nextText			: "Next",
 			previousText		: "Previous",
-			pauseOnHover		: true
+			captions			: false, 
+			pauseOnHover		: true,
+			keyboardControls	: true 
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
@@ -93,6 +95,8 @@ var protoShow = Class.create({
 		this.setupSlides();
 		this.setupControls();
 		this.setupNavigation();
+		this.setupCaptions();
+		this.setupKeyboardControls();
 		this.stopOnHover();
 
 		// let's get things going!				
@@ -108,7 +112,7 @@ var protoShow = Class.create({
 
 	play: function() {
 		// Role: Starts the show and initialises master timer
-		console.log("Playing");
+		
 		var _this = this;	
 		
 		this.running = true;
@@ -116,20 +120,20 @@ var protoShow = Class.create({
 		this.toggleMasterTimer(true);	
 		this.updateControls(true);
 		
-		console.log("Play function says isPlaying() is: " + _this.isPlaying());	
+		
 	},
 
 	stop: function() {
 		// Completely stops the show and clears the master timer
 		var _this = this;
-		console.log("Stopping");
+		
 		
 		this.running = false;
 
 		this.toggleMasterTimer(false);
 		this.updateControls(false);
 		
-		console.log("Stop function says isPlaying() is: " + _this.isPlaying());
+		
 	},
 
 	toggleMasterTimer: function(boolean) {
@@ -138,7 +142,7 @@ var protoShow = Class.create({
 		if (boolean) {
 			// Check if custom interval has been defined by user as data attribute in HTML
 			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
-			console.log(slideInterval);
+			
 			// Set Master time which controls progress of show			
 			this.masterTimer	=	new PeriodicalExecuter(function(pe) {
 			  	_this.mode();		    
@@ -152,13 +156,13 @@ var protoShow = Class.create({
 
 	forward: function(transTime) {
 		// Role: Runs slideshow "forwards"
-		console.log("Forward");
+		
 		this.goMaster( this.currentSlideID + 1, transTime);
 	},
 
 	backward: function(transTime) {
 		// Role: Runs slideshow "backwards"
-		console.log("Backward");		
+				
 		this.goMaster( this.currentSlideID - 1, transTime );	
 	},
 
@@ -207,7 +211,7 @@ var protoShow = Class.create({
 				_this.currentSlideEle.removeClassName('active-slide');
 				_this.nextSlideEle.addClassName('active-slide');
 				_this.updateNavigation(_this.currentSlideID, _this.nextSlideID);
-
+				_this.updateCaptions(_this.nextSlideEle);
 
 				_this.currentSlideID 	= 	_this.nextSlideID;	// update current slide to be the slide we're just moved to
 				_this.currentSlideEle	=	_this.slides[_this.nextSlideID];
@@ -376,7 +380,7 @@ var protoShow = Class.create({
 
 			handlingClick = true;
 			
-			//console.info(element);
+			
 			
 			if(element === _this.controlForward) {
 				_this.next();
@@ -450,6 +454,38 @@ var protoShow = Class.create({
 		}
 	},
 
+	setupCaptions: function() {
+		var _this = this;
+
+		if (this.options.captions) {
+			var captionEle			=	new Element('div', { 'class' : 'slide-caption'});			
+			captionEle.hide();	
+			this.element.insert(captionEle,'bottom');
+			this.captionsElement	=	captionEle;
+			this.updateCaptions(_this.currentSlideEle);
+		}
+
+	},
+
+	updateCaptions: function(slide) {
+		if (!this.options.captions) {
+			return false;
+		}
+		
+		
+
+		var nextCaption = slide.down('img').readAttribute('alt');
+		if (nextCaption.replace(/^\s*|\s*$/g,'').length) {		// check that the attribute has some content (not just spaces)					
+			if(!this.captionsElement.visible()) {
+				// just check that the element is visible
+				this.captionsElement.show();
+			}				
+			this.captionsElement.update(nextCaption);	
+		} else {	// if no caption is found then hide the caption element
+			this.captionsElement.hide();
+		}
+	},
+
 
 	stopOnHover: function() {
 		var _this = this;
@@ -461,6 +497,30 @@ var protoShow = Class.create({
 				_this.play();					
 			});
 		}
+	},
+
+	setupKeyboardControls: function() {
+		// 39 = right arrow
+		// 37 = left arrow
+
+		if (!this.options.keyboardControls) {
+			return false;
+		}
+
+		var _this = this;
+		document.observe('keydown', function(key) {
+			var keyCode = key.keyCode;
+
+			if (keyCode === 37 || keyCode === 39) {
+				if (keyCode === 37) {
+		        	_this.previous();
+		        } else if (keyCode === 39) {
+		        	_this.next();
+		        }
+			} else {
+				return false;
+			}
+        }); 	
 	},
 
 

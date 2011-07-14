@@ -6,10 +6,6 @@ document.observe("dom:loaded", function() {
 	var myshow = new protoShow('myshow1',{
 		interval		:	4000,
 		captions		: 	true,
-		/*transitionType	:   function() {
-					console.log("My custom trans");	
-				},*/
-
 		transitionType	: 	"slide", 
 		cc				: 	false
 	});
