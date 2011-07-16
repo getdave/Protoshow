@@ -50,7 +50,8 @@ var protoShow = Class.create({
 			previousText		: "Previous",
 			captions			: false, 
 			pauseOnHover		: false,
-			keyboardControls	: true 
+			keyboardControls	: true,
+			fireEvents			: true
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
@@ -113,14 +114,11 @@ var protoShow = Class.create({
 	play: function() {
 		// Role: Starts the show and initialises master timer
 		
-		var _this = this;	
-		
+		var _this = this;			
 		this.running = true;
-
 		this.toggleMasterTimer(true);	
-		this.updateControls(true);
-		
-		
+		this.updateControls(true);		
+		this.fireCustomEvent("protoShow:started");
 	},
 
 	stop: function() {
@@ -132,8 +130,7 @@ var protoShow = Class.create({
 
 		this.toggleMasterTimer(false);
 		this.updateControls(false);
-		
-		
+		this.fireCustomEvent("protoShow:stopped");
 	},
 
 	toggleMasterTimer: function(boolean) {
@@ -158,13 +155,13 @@ var protoShow = Class.create({
 	forward: function(transTime) {
 		// Role: Runs slideshow "forwards"
 		
-		this.goMaster( this.currentSlideID + 1, transTime);
+		this.goMaster( this.currentSlideID + 1, transTime, "forward");
 	},
 
 	backward: function(transTime) {
 		// Role: Runs slideshow "backwards"
 				
-		this.goMaster( this.currentSlideID - 1, transTime );	
+		this.goMaster( this.currentSlideID - 1, transTime, "backward");	
 	},
 
 	next: function() {
@@ -182,7 +179,7 @@ var protoShow = Class.create({
 		this.goMaster( slide, this.manTransitionTime );	
 	},
 
-	goMaster: function(next,transTime) {
+	goMaster: function(next,transTime, direction) {
 		// Role: Master function - controls delegation of slide swapping	
 		
 		var _this = this;
@@ -202,6 +199,7 @@ var protoShow = Class.create({
 		this.toggleAnimating(true);		
 		this.setNextIndex(next);  // set this.nextSlideID correctly		
 		
+		this.fireCustomEvent("protoShow:transitionStarted",transTime,direction);
 		_this.updateNavigation(_this.currentSlideID, _this.nextSlideID);
 
 		this.transitionType(this.currentSlideEle,this.nextSlideEle, {
@@ -212,7 +210,7 @@ var protoShow = Class.create({
 				_this.nextSlideEle.addClassName('active-slide');
 				
 				_this.updateCaptions(_this.nextSlideEle);
-
+				_this.fireCustomEvent("protoShow:transitionFinished");
 				_this.currentSlideID 	= 	_this.nextSlideID;	// update current slide to be the slide we're just moved to
 				_this.currentSlideEle	=	_this.slides[_this.nextSlideID];
 				
@@ -518,6 +516,16 @@ var protoShow = Class.create({
 				return false;
 			}
         }); 	
+	},
+
+	fireCustomEvent: function(event_name,trans_time,direction) {
+		if(this.options.fireEvents) {
+			var element = this.element;
+			element.fire(event_name, {
+				transitionTime	: trans_time,
+				direction		: direction 
+			});		
+		}
 	},
 
 
