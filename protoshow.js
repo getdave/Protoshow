@@ -133,10 +133,10 @@ var protoShow = Class.create({
 		this.fireCustomEvent("protoShow:stopped");
 	},
 
-	toggleMasterTimer: function(boolean) {
+	toggleMasterTimer: function(bln) {
 		var _this = this;
 
-		if (boolean) {
+		if (bln) {
 			// Check if custom interval has been defined by user as data attribute in HTML
 			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
 			
@@ -280,7 +280,7 @@ var protoShow = Class.create({
 				e.hide();		
 			}
 			var slideInt = e.readAttribute('data-slide-interval');			
-			slideInt = (slideInt.blank()) ? undefined : slideInt;	// check slideInt is not a blank string
+			slideInt = (slideInt && slideInt.blank()) ? undefined : slideInt;	// check slideInt is not a blank string
 
 			_this.slideIntervals.push(slideInt);	// push intervals into array for use later
 		});		
@@ -540,10 +540,10 @@ var protoShow = Class.create({
 		return this.animating;
 	},
 
-	toggleAnimating: function(boolean) {
+	toggleAnimating: function(bln) {
 		// Role: toggles var to say whether animation is in progress and manipulates DOM
-		this.animating = boolean;
-		if (boolean) {
+		this.animating = bln;
+		if (bln) {
 			this.element.addClassName("animating");	
 		} else {
 			this.element.removeClassName("animating");
