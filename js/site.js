@@ -15,5 +15,7 @@ Event.observe(window, "load", function() {
 		interval	:	2000,
 		captions	: 	true
 	});
+
+	
 	
 });

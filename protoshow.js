@@ -1,5 +1,5 @@
 /*  ProtoShow JavaScript slide show, 
- *	v 0.7 (beta) - 12/06/11
+ *	v 0.8 (beta) - 16/09/11
  *  Copyright(c) 2011 David Smith (web: http://www.aheadcreative.com; twitter: @get_dave)
  *
  *  This work is licenced under the Creative Commons Attribution-No Derivative Works 3.0 Unported License. 
@@ -10,16 +10,6 @@
  *	http://www.deepbluesky.com
  *
  *--------------------------------------------------------------------------*/
-
-/*
-
-Show "swap" process
-
-1) this.play() initialises a timer to run every "x" seconds
-
-
-
-*/
 
 
 
@@ -50,7 +40,8 @@ var protoShow = Class.create({
 			previousText		: "Previous",
 			captions			: false, 
 			pauseOnHover		: false,
-			keyboardControls	: true 
+			keyboardControls	: true,
+			fireEvents			: true
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
@@ -113,14 +104,11 @@ var protoShow = Class.create({
 	play: function() {
 		// Role: Starts the show and initialises master timer
 		
-		var _this = this;	
-		
+		var _this = this;			
 		this.running = true;
-
 		this.toggleMasterTimer(true);	
-		this.updateControls(true);
-		
-		
+		this.updateControls(true);		
+		this.fireCustomEvent("protoShow:started");
 	},
 
 	stop: function() {
@@ -132,14 +120,13 @@ var protoShow = Class.create({
 
 		this.toggleMasterTimer(false);
 		this.updateControls(false);
-		
-		
+		this.fireCustomEvent("protoShow:stopped");
 	},
 
-	toggleMasterTimer: function(boolean) {
+	toggleMasterTimer: function(bln) {
 		var _this = this;
 
-		if (boolean) {
+		if (bln) {
 			// Check if custom interval has been defined by user as data attribute in HTML
 			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
 			
@@ -158,13 +145,13 @@ var protoShow = Class.create({
 	forward: function(transTime) {
 		// Role: Runs slideshow "forwards"
 		
-		this.goMaster( this.currentSlideID + 1, transTime);
+		this.goMaster( this.currentSlideID + 1, transTime, "forward");
 	},
 
 	backward: function(transTime) {
 		// Role: Runs slideshow "backwards"
 				
-		this.goMaster( this.currentSlideID - 1, transTime );	
+		this.goMaster( this.currentSlideID - 1, transTime, "backward");	
 	},
 
 	next: function() {
@@ -182,7 +169,7 @@ var protoShow = Class.create({
 		this.goMaster( slide, this.manTransitionTime );	
 	},
 
-	goMaster: function(next,transTime) {
+	goMaster: function(next,transTime, direction) {
 		// Role: Master function - controls delegation of slide swapping	
 		
 		var _this = this;
@@ -202,6 +189,7 @@ var protoShow = Class.create({
 		this.toggleAnimating(true);		
 		this.setNextIndex(next);  // set this.nextSlideID correctly		
 		
+		this.fireCustomEvent("protoShow:transitionStarted",transTime,direction);
 		_this.updateNavigation(_this.currentSlideID, _this.nextSlideID);
 
 		this.transitionType(this.currentSlideEle,this.nextSlideEle, {
@@ -212,7 +200,7 @@ var protoShow = Class.create({
 				_this.nextSlideEle.addClassName('active-slide');
 				
 				_this.updateCaptions(_this.nextSlideEle);
-
+				_this.fireCustomEvent("protoShow:transitionFinished");
 				_this.currentSlideID 	= 	_this.nextSlideID;	// update current slide to be the slide we're just moved to
 				_this.currentSlideEle	=	_this.slides[_this.nextSlideID];
 				
@@ -282,7 +270,7 @@ var protoShow = Class.create({
 				e.hide();		
 			}
 			var slideInt = e.readAttribute('data-slide-interval');			
-			slideInt = (slideInt.blank()) ? undefined : slideInt;	// check slideInt is not a blank string
+			slideInt = (slideInt && slideInt.blank()) ? undefined : slideInt;	// check slideInt is not a blank string
 
 			_this.slideIntervals.push(slideInt);	// push intervals into array for use later
 		});		
@@ -520,6 +508,16 @@ var protoShow = Class.create({
         }); 	
 	},
 
+	fireCustomEvent: function(event_name,trans_time,direction) {
+		if(this.options.fireEvents) {
+			var element = this.element;
+			element.fire(event_name, {
+				transitionTime	: trans_time,
+				direction		: direction 
+			});		
+		}
+	},
+
 
 	/* UTILITY FUNCTIONS
 	------------------------------------------------*/
@@ -532,10 +530,10 @@ var protoShow = Class.create({
 		return this.animating;
 	},
 
-	toggleAnimating: function(boolean) {
+	toggleAnimating: function(bln) {
 		// Role: toggles var to say whether animation is in progress and manipulates DOM
-		this.animating = boolean;
-		if (boolean) {
+		this.animating = bln;
+		if (bln) {
 			this.element.addClassName("animating");	
 		} else {
 			this.element.removeClassName("animating");
