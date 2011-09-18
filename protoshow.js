@@ -1,5 +1,5 @@
 /*  ProtoShow JavaScript slide show, 
- *	v 0.7 (beta) - 12/06/11
+ *	v 0.8 (beta) - 16/09/11
  *  Copyright(c) 2011 David Smith (web: http://www.aheadcreative.com; twitter: @get_dave)
  *
  *  This work is licenced under the Creative Commons Attribution-No Derivative Works 3.0 Unported License. 
@@ -10,16 +10,6 @@
  *	http://www.deepbluesky.com
  *
  *--------------------------------------------------------------------------*/
-
-/*
-
-Show "swap" process
-
-1) this.play() initialises a timer to run every "x" seconds
-
-
-
-*/
 
 
 
