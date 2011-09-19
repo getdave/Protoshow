@@ -36,6 +36,12 @@
 	color:#fff;
 }
 
+.proto-timer {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 9999;
+}
 
 
 /* TRANSITION SLIDE

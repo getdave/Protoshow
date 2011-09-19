@@ -41,7 +41,8 @@ var protoShow = Class.create({
 			captions			: false, 
 			pauseOnHover		: false,
 			keyboardControls	: true,
-			fireEvents			: true
+			fireEvents			: true,
+			timer				: true
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
@@ -64,6 +65,7 @@ var protoShow = Class.create({
 		this.stopText			=	this.options.stopText;
 		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
 		this.autoPlay			=	this.options.autoPlay;
+		this.timer				=	this.options.timer;
 
 		
 
@@ -90,6 +92,9 @@ var protoShow = Class.create({
 		this.setupKeyboardControls();
 		this.stopOnHover();
 
+		//this.createTimer();
+		this.setupTimer();
+
 		// let's get things going!				
 		this.play();
 		
@@ -107,7 +112,8 @@ var protoShow = Class.create({
 		var _this = this;			
 		this.running = true;
 		this.toggleMasterTimer(true);	
-		this.updateControls(true);		
+		this.updateControls(true);	
+		
 		this.fireCustomEvent("protoShow:started");
 	},
 
@@ -115,11 +121,11 @@ var protoShow = Class.create({
 		// Completely stops the show and clears the master timer
 		var _this = this;
 		
-		
 		this.running = false;
 
 		this.toggleMasterTimer(false);
 		this.updateControls(false);
+		
 		this.fireCustomEvent("protoShow:stopped");
 	},
 
@@ -129,6 +135,7 @@ var protoShow = Class.create({
 		if (bln) {
 			// Check if custom interval has been defined by user as data attribute in HTML
 			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
+			this.runTimer();	
 			
 			// Set Master time which controls progress of show			
 			this.masterTimer	=	new PeriodicalExecuter(function(pe) {
@@ -136,6 +143,7 @@ var protoShow = Class.create({
 			}, slideInterval/1000);
 			this.loopCount++;
 		} else {
+			this.stopTimer();
 			_this.masterTimer && _this.masterTimer.stop();
 			_this.masterTimer = null;
 		}
@@ -571,8 +579,87 @@ var protoShow = Class.create({
 		}
 		
 	},
+	
+	
 
+	setupTimer: function() {	
+		/* Create timer <canvas> element, get 2D Context and insert into DOM */
+		
+		this.slideTimer = document.createElement('canvas');		
+		if (this.slideTimer.getContext && this.slideTimer.getContext('2d')) { // test for Canvas support
+			this.slideTimer.writeAttribute('class','proto-timer');	
+			this.slideTimer.width = 30;
+			this.slideTimer.height = 30;
+			this.element.insert(this.slideTimer,'bottom');		
+			this.timerCtx = this.slideTimer.getContext('2d');
+		} else {
+			this.timer = false;
+		}
+		
+		
+		
+		
+	},
+	
+	
+	runTimer: function() {
+		var _this = this;
+		if (this.timer) {
+			
+			// use Epoch time to ensure code executes in time specified
+			// borrowed from Emile JS http://script.aculo.us/downloads/emile.pdf
+			var start = (new Date).getTime();
+			var duration = this.interval;
+			var finish	= start+duration;
+			var angleStart = 0;
+			
+			
+			this.progressTimer = new PeriodicalExecuter(function(pe) {
+				_this.resetTimer();
+				var time = (new Date).getTime();
+				var pos  = time>finish ? 1 : (time-start)/duration;			
+				
+									
+				this.drawArc(-5,Math.floor(( (360 + 15) *pos)),'rgba(255,255,255,.8)',true);
+				
+			
+				
+				
+			
+				if( (!this.isPlaying()) || time>finish) {	// if we are stopped or we are finished then stop and clear the timer			
+					pe.stop();
+					_this.resetTimer();
+				} 		
+				
+			}.bind(this),duration/100000);	
+		}
+	},
+	
+	
+	resetTimer: function() {
+		console.log("Resetting timer");
+		this.slideTimer.width = this.slideTimer.width;         
+	},
+	
+	
+	drawArc: function(startAngle,endAngle,strokeStyle,shadow) {
+			
+		this.drawingArc = true;		
+		var ctx = this.timerCtx;			
+		ctx.beginPath();		
+		ctx.strokeStyle = strokeStyle;
+		ctx.lineCap ='butt';
+  
+		ctx.lineWidth = 4;	
+		ctx.arc(12,18,10, (Math.PI/180)*(startAngle-90),(Math.PI/180)*(endAngle-90), false); 
+		ctx.stroke();	
+		this.drawingArc = false;			
+	},
 
+	stopTimer: function() {			
+		this.resetTimer();		
+		clearInterval(this.progressTimer);						
+	},
 	
 	/* LOGGING FUNCTIONS
 	------------------------------------------------*/
