@@ -4,7 +4,7 @@
 <!--[if IE 8]>     <html class="ie ie8 lte9 lte8 no-js"> <![endif]-->
 <!--[if IE 9]>     <html class="ie ie9 lte9 no-js"> <![endif]-->
 <!--[if gt IE 9]>  <html class="no-js"> <![endif]-->
-<!--[if !IE]><!--> <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en' class="no-js">             <!--<![endif]-->
+<!--[if !IE]><!--> <html class="no-js">             <!--<![endif]-->
 	<head>
 
 		<meta charset="utf-8" />	
@@ -39,65 +39,6 @@
 				<li class="slide" data-slide-interval=""><img src="img/slide03.jpg" alt="Mountain reflections - &copy; David Smith" /></li>
 				<li class="slide" data-slide-interval=""><img src="img/slide04.jpg" alt="Leaves in Singapore - &copy; David Smith" /></li>
 			</ul>
-			
-			<svg xmlns="http://www.w3.org/2000/svg" id="svgele">
-				
-			</svg>
-<!--
-	<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="70px" height="70px"
-	style="position:absolute; top:0; right: 0;z-index: 9999"
-	viewBox="-82 -48 200 200"
-   onload="drawCircle();"> 
-  <script> 
-    function drawCircle() {
-
-
-        var i = 0;
-        var circle = document.getElementById("arc");
-        var angle = -90;
-        var radius = 30;     
-        window.timer = window.setInterval(
-         function() {
-                	if (i <= 360) {
-                    angle -=1;  
-                    angle %= 360;
-                    var radians= (angle/180) * Math.PI;
-                    var x = 36 - Math.cos(radians) * radius;
-                    var y = 36 + Math.sin(radians) * radius;
-                    var e = circle.getAttribute("d");
-                    if(i==0) {
-                        var d = e+ " M "+x + " " + y;
-                    }
-                    else {
-                        var d = e+ " L "+x + " " + y;
-                    }  
-                    circle.setAttribute("d", d);
-                    i++;
-                	} 
-                    
-                } 
-              ,20); 
-   
-    }
-    </script> 
-	<circle cx="36" cy="36" r="30"
-        fill="none" stroke="rgba(0,0,0,.3)" stroke-width="13"  />
-    <path d="M0,0" id="arc" style="fill:none;stroke:#ffffff;stroke-width:12;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
-</svg>-->
-
-
-
-			
-			<!-- <ul class="proto-controls">
-				<li class="start-stop"><a href="#" title="Pause the show">Pause</a></li>
-				<li class="backward"><a href="#" title="Go to Previous slide and play backwards">Previous</a></li>
-				<li class="forward"><a href="#" title="Go to Next slide and play forwards">Next</a></li>				
-			</ul> -->
-			
-			
-			
-			
-			
 		</div>
 		
 	</body>
