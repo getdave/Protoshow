@@ -42,7 +42,7 @@ var protoShow = Class.create({
 			pauseOnHover		: false,
 			keyboardControls	: true,
 			fireEvents			: true,
-			timer				: true
+			progressTimer		: true
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
@@ -65,7 +65,7 @@ var protoShow = Class.create({
 		this.stopText			=	this.options.stopText;
 		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
 		this.autoPlay			=	this.options.autoPlay;
-		this.timer				=	this.options.timer;
+		this.progressTimer		=	this.options.progressTimer;
 
 		
 
@@ -135,7 +135,7 @@ var protoShow = Class.create({
 		if (bln) {
 			// Check if custom interval has been defined by user as data attribute in HTML
 			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
-			this.runTimer();	
+			this.runProgressTimer();	
 			
 			// Set Master time which controls progress of show			
 			this.masterTimer	=	new PeriodicalExecuter(function(pe) {
@@ -143,7 +143,7 @@ var protoShow = Class.create({
 			}, slideInterval/1000);
 			this.loopCount++;
 		} else {
-			this.stopTimer();
+			this.stopProgressTimer();
 			_this.masterTimer && _this.masterTimer.stop();
 			_this.masterTimer = null;
 		}
@@ -554,9 +554,7 @@ var protoShow = Class.create({
 		if(next === undefined) { // Ensure "next" has a value
 			next = this.currentSlideID+1;
 		} 
-
-
-
+		
 		// Ensure we're within bounds
 		if (next >= this.slidesLength) {
 			next = 0;
@@ -569,8 +567,9 @@ var protoShow = Class.create({
 	},
 
 	updateControls: function(status) {
+		// Role: Updates the status of the Play/Pause button
 		var _this = this;
-		// Role: Updates the status of the Play/Pause button		
+				
 		if (status) {			// The show has been started so update the button to "Pause"
 			this.controlStartStop.down('a').update(_this.stopText);
 		} else {			
@@ -583,83 +582,86 @@ var protoShow = Class.create({
 	
 
 	setupTimer: function() {	
-		/* Create timer <canvas> element, get 2D Context and insert into DOM */
+		// Role: creates the proto-progress-timer <canvas> element, gets 2D Context and inserta into DOM 
 		
-		this.slideTimer = document.createElement('canvas');		
-		if (this.slideTimer.getContext && this.slideTimer.getContext('2d')) { // test for Canvas support
-			this.slideTimer.writeAttribute('class','proto-timer');	
-			this.slideTimer.width = 30;
-			this.slideTimer.height = 30;
-			this.element.insert(this.slideTimer,'bottom');		
-			this.timerCtx = this.slideTimer.getContext('2d');
+		this.progressTimerEle = document.createElement('canvas');		
+		if (this.progressTimerEle.getContext && this.progressTimerEle.getContext('2d')) { // test for Canvas support
+			this.progressTimerEle.writeAttribute('class','proto-progress-timer');	
+			this.progressTimerEle.width = 30;
+			this.progressTimerEle.height = 30;
+			this.element.insert(this.progressTimerEle,'bottom');		
+			this.progressTimerCtx = this.progressTimerEle.getContext('2d');
 		} else {
-			this.timer = false;
+			this.progressTimer = false;	// no canvas support
 		}
-		
-		
-		
-		
 	},
 	
 	
-	runTimer: function() {
+	runProgressTimer: function() {
+		// Role: runs & controls the animation of the "progress timer" 
+		
 		var _this = this;
-		if (this.timer) {
-			
+		
+		
+		if (this.progressTimer) {	// if user has set to use progress timer and the browser supports <canvas>
+			this.progressTimerEle.appear({
+				duration: 0.3
+			});
 			// use Epoch time to ensure code executes in time specified
 			// borrowed from Emile JS http://script.aculo.us/downloads/emile.pdf
 			var start = (new Date).getTime();
-			var duration = this.interval;
+			var duration = this.interval - (this.interval/4);
 			var finish	= start+duration;
 			var angleStart = 0;
 			
 			
-			this.progressTimer = new PeriodicalExecuter(function(pe) {
-				_this.resetTimer();
+			this.progressTimerPE = new PeriodicalExecuter(function(pe) {
+				_this.resetProgressTimer(); // clear the canvas ready for next segment
+				this.drawArc(_this.progressTimerCtx,0,360,'rgba(0,0,0,.2)');	// redraw the black bg circle
+				
 				var time = (new Date).getTime();
-				var pos  = time>finish ? 1 : (time-start)/duration;			
-				
+				var pos  = time>finish ? 1 : (time-start)/duration;						
 									
-				this.drawArc(-5,Math.floor(( (360 + 15) *pos)),'rgba(255,255,255,.8)',true);
-				
+				// draw the arch passing in the ctx and the degress of the arch
+				this.drawArc(_this.progressTimerCtx,-5,Math.floor(( (360) * pos)),'rgba(255,255,255,.8)',true);			
 			
-				
-				
-			
-				if( (!this.isPlaying()) || time>finish) {	// if we are stopped or we are finished then stop and clear the timer			
+				if( (!this.isPlaying()) || time>finish) {	// if we are stopped or we are finished then stop the PE and fade the canvas out
 					pe.stop();
-					_this.resetTimer();
-				} 		
-				
+					_this.progressTimerEle.fade({
+						duration: (_this.interval/4)/1000
+					});
+				} 						
 			}.bind(this),duration/100000);	
 		}
 	},
 	
 	
-	resetTimer: function() {
-		console.log("Resetting timer");
-		this.slideTimer.width = this.slideTimer.width;         
+	resetProgressTimer: function() {
+		this.progressTimerEle.width = this.progressTimerEle.width;         
 	},
 	
+	stopProgressTimer: function() {			
+		this.resetProgressTimer();		
+		clearInterval(this.progressTimerPE);						
+	},
 	
-	drawArc: function(startAngle,endAngle,strokeStyle,shadow) {
-			
-		this.drawingArc = true;		
-		var ctx = this.timerCtx;			
+	drawArc: function(canvasCtx,startAngle,endAngle,strokeStyle) {	
+		// Role: utility function for drawing archs on <canvas> elements
+				
+		var drawingArc 	= true;		
+		var ctx 		= canvasCtx;
+					
 		ctx.beginPath();		
 		ctx.strokeStyle = strokeStyle;
-		ctx.lineCap ='butt';
-  
-		ctx.lineWidth = 4;	
-		ctx.arc(12,18,10, (Math.PI/180)*(startAngle-90),(Math.PI/180)*(endAngle-90), false); 
+		ctx.lineCap 	= 'butt';  
+		ctx.lineWidth 	= 4;	
+		
+		ctx.arc(15,15,10, (Math.PI/180)*(startAngle-90),(Math.PI/180)*(endAngle-90), false); 
 		ctx.stroke();	
-		this.drawingArc = false;			
+		var drawingArc = false;			
 	},
 
-	stopTimer: function() {			
-		this.resetTimer();		
-		clearInterval(this.progressTimer);						
-	},
+	
 	
 	/* LOGGING FUNCTIONS
 	------------------------------------------------*/

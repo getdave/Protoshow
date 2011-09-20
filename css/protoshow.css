@@ -36,10 +36,10 @@
 	color:#fff;
 }
 
-.proto-timer {
+.proto-progress-timer {
 	position: absolute;
-	top: 0;
-	right: 0;
+	top: 7px;
+	right: 7px;
 	z-index: 9999;
 }
 
