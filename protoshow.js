@@ -502,9 +502,11 @@ var protoShow = Class.create({
 
 		var _this = this;
 		document.observe('keydown', function(key) {
+			
 			var keyCode = key.keyCode;
-
-			if (keyCode === 37 || keyCode === 39) {
+			
+			// stop arrow keys from working when focused on form items
+			if ( (!key.target.tagName.match('TEXTAREA|INPUT|SELECT')) && (keyCode === 37 || keyCode === 39) ) {
 				if (keyCode === 37) {
 		        	_this.previous();
 		        } else if (keyCode === 39) {
