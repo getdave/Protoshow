@@ -36,6 +36,14 @@
 	color:#fff;
 }
 
+.proto-progress-timer {
+	position: absolute;
+	top: 7px;
+	right: 7px;
+	z-index: 9999;
+}
+
+
 /* TRANSITION SLIDE
 ------------------------------------------------*/
 
