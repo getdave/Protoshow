@@ -131,7 +131,7 @@ var protoShow = Class.create({
 
 	toggleMasterTimer: function(bln) {
 		var _this = this;
-
+	
 		if (bln) {
 			// Check if custom interval has been defined by user as data attribute in HTML
 			var slideInterval = (this.slideIntervals[this.currentSlideID]) ? this.slideIntervals[this.currentSlideID] : this.interval;
@@ -606,9 +606,11 @@ var protoShow = Class.create({
 		
 		
 		if (this.progressTimer) {	// if user has set to use progress timer and the browser supports <canvas>
-			this.progressTimerEle.appear({
-				duration: 0.3
-			});
+
+			
+			
+			this.progressTimerEle.show();			
+			
 			// use Epoch time to ensure code executes in time specified
 			// borrowed from Emile JS http://script.aculo.us/downloads/emile.pdf
 			var start = (new Date).getTime();
@@ -630,7 +632,10 @@ var protoShow = Class.create({
 				if( (!this.isPlaying()) || time>finish) {	// if we are stopped or we are finished then stop the PE and fade the canvas out
 					pe.stop();
 					_this.progressTimerEle.fade({
-						duration: (_this.interval/4)/1000
+						duration: (_this.interval > 1000) ? (_this.interval/8)/1000 : 0.2,
+						afterFinish: function() {
+							_this.resetProgressTimer();
+						}
 					});
 				} 						
 			}.bind(this),duration/100000);	
