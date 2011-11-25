@@ -66,7 +66,7 @@ var protoShow = Class.create({
 		this.mode				= 	this[this.options.mode];							// Get play "mode" (forward, backward, random...etc)
 		this.autoPlay			=	this.options.autoPlay;
 		this.progressTimer		=	this.options.progressTimer;
-
+		this.showUniqueID		=	element;		// get a unique ID based on the id attr of the show element
 		
 
 
