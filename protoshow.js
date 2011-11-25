@@ -42,7 +42,8 @@ var protoShow = Class.create({
 			pauseOnHover		: false,
 			keyboardControls	: true,
 			fireEvents			: true,
-			progressTimer		: true
+			progressTimer		: true,
+			swipeEvents			: true
 			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
 
@@ -90,6 +91,7 @@ var protoShow = Class.create({
 		this.setupNavigation();
 		this.setupCaptions();
 		this.setupKeyboardControls();
+		this.setupSwipeEvents();
 		this.stopOnHover();
 
 		//this.createTimer();
@@ -517,6 +519,36 @@ var protoShow = Class.create({
 			}
         }); 	
 	},
+	
+	setupSwipeEvents: function() {
+		var _this 		= this;
+		var touchStartX = false;		
+		
+		if (!this.options.swipeEvents) {
+			return false;
+		}
+		
+		
+		/* TOUCH START: Get and store the position of the initial touch */
+		this.element.observe('touchstart', function(e) {
+			
+			touchStartX = e.targetTouches[0].clientX;
+		});
+		
+		
+		/* TOUCH MOVE: Called every time a user moves finger across the screen */
+		this.element.observe('touchmove', function(e) {	
+			e.preventDefault();		
+			if (touchStartX > e.targetTouches[0].clientX) {
+				_this.previous();
+			} else {
+				_this.next();
+			}
+		});	
+				
+	},
+
+	
 
 	fireCustomEvent: function(event_name,trans_time,direction,slideID) {
 		if(this.options.fireEvents) {
