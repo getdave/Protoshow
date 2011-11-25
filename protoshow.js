@@ -197,7 +197,7 @@ var protoShow = Class.create({
 		this.toggleAnimating(true);		
 		this.setNextIndex(next);  // set this.nextSlideID correctly		
 		
-		this.fireCustomEvent("protoShow:transitionStarted",transTime,direction);
+		this.fireCustomEvent("protoShow:transitionStarted",transTime,direction,_this.nextSlideID);
 		_this.updateNavigation(_this.currentSlideID, _this.nextSlideID);
 
 		this.transitionType(this.currentSlideEle,this.nextSlideEle, {
@@ -518,16 +518,18 @@ var protoShow = Class.create({
         }); 	
 	},
 
-	fireCustomEvent: function(event_name,trans_time,direction) {
+	fireCustomEvent: function(event_name,trans_time,direction,slideID) {
 		if(this.options.fireEvents) {
 			var element = this.element;
 			element.fire(event_name, {
+				showID 			: this.showUniqueID,
 				transitionTime	: trans_time,
-				direction		: direction 
+				direction		: direction,
+				slideID 		: slideID
 			});		
 		}
 	},
-
+	
 
 	/* UTILITY FUNCTIONS
 	------------------------------------------------*/
