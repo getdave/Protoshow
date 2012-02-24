@@ -1,5 +1,5 @@
 /*  ProtoShow JavaScript slide show, 
- *	v 0.8 (beta) - 16/09/11
+ *	v 0.9 (beta) - 24/02/12
  *  Copyright(c) 2011 David Smith (web: http://www.aheadcreative.com; twitter: @get_dave)
  *
  *  This work is licenced under the Creative Commons Attribution-No Derivative Works 3.0 Unported License. 
@@ -14,7 +14,7 @@
 
 
 if(typeof Prototype=='undefined' || typeof Scriptaculous =='undefined') {
-	throw("Protoshow.js requires the Prototype & Scriptaculous  JavaScript framework");
+	throw("Protoshow.js requires the Prototype & Scriptaculous JavaScript frameworks");
 } else {
 
 var protoShow = Class.create({
