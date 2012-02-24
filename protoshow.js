@@ -603,14 +603,16 @@ var protoShow = Class.create({
 	},
 
 	updateControls: function(status) {
-		// Role: Updates the status of the Play/Pause button
-		var _this = this;
-				
-		if (status) {			// The show has been started so update the button to "Pause"
-			this.controlStartStop.down('a').update(_this.stopText);
-		} else {			
-			// The show has been stopped so update the button to "Play"
-			this.controlStartStop.down('a').update(_this.playText);
+		if (this.options.controls) {
+			// Role: Updates the status of the Play/Pause button
+			var _this = this;
+					
+			if (status) {			// The show has been started so update the button to "Pause"
+				this.controlStartStop.down('a').update(_this.stopText);
+			} else {			
+				// The show has been stopped so update the button to "Play"
+				this.controlStartStop.down('a').update(_this.playText);
+			}
 		}
 		
 	},
@@ -648,7 +650,10 @@ var protoShow = Class.create({
 			// use Epoch time to ensure code executes in time specified
 			// borrowed from Emile JS http://script.aculo.us/downloads/emile.pdf
 			var start = (new Date).getTime();
-			var duration = this.interval - (this.interval/4);
+
+			// we want the timer to finish slightly before the slide transitions
+			// so we shorten the duration by 1/4
+			var duration = this.interval*0.75;
 			var finish	= start+duration;
 			var angleStart = 0;
 			
