@@ -44,11 +44,7 @@ var protoShow = Class.create({
 			fireEvents			: true,
 			progressTimer		: true,
 			swipeEvents			: true
-			
 		}, options || {}); // We use Prototype's Object.extend() to overwrite defaults with user preferences 
-
-		
-
 
 		// get/set various options
 		this.element 			= 	$(element);											// DOM element that contains the slideshow
@@ -69,9 +65,6 @@ var protoShow = Class.create({
 		this.progressTimer		=	this.options.progressTimer;
 		this.showUniqueID		=	element;											// get a unique ID based on the id attr of the show element
 		
-
-
-
 		// define variables before use
 		this.running			=	false;
 		this.masterTimer		=	false;
@@ -82,7 +75,6 @@ var protoShow = Class.create({
 		this.slideIntervals		=	[];
 		this.currentSlideEle	=	this.slides[this.currentSlideID];
 		this.nextSlideEle		=	this.slides[this.nextSlideID];
-
 
 		// run some initial setup
 		this.setupTransitions(this.options.transitionType);
@@ -126,7 +118,7 @@ var protoShow = Class.create({
 	},
 
 	/**
-	 * TOGGLE MASTER TIMER
+	 * toggleMasterTimer
 	 * @param  {[type]} bln toggles the master time on/off depending on the boolean argument
 	 */
 	toggleMasterTimer: function(bln) {
@@ -183,7 +175,7 @@ var protoShow = Class.create({
 	},
 
 	/**
-	 * GOTOSLIDE
+	 * gotoSlide
 	 * @description allows you to skip directly to the slide provided
 	 * @param  {integar} slide a integar representing the desired slide
 	 * @param  {floating point} transTime time in seconds it show take to transition between the two slides
@@ -196,7 +188,7 @@ var protoShow = Class.create({
 	},
 
 	/**
-	 * GO MASTER
+	 * goMaster
 	 * @description master method controlling controls delegation of slide swapping	
 	 * @param  {integar} next a integar representing the desired slide
 	 * @param  {[floating point]} transTime time in seconds it show take to transition between the two slides
@@ -286,10 +278,8 @@ var protoShow = Class.create({
 		});
 	},
 
-	
-
 	/**
-	 * SETUPSLIDES
+	 * setupSlides
 	 * @description basic one time setup tasks for show 
 	 */
 	setupSlides: function() {		
@@ -311,7 +301,7 @@ var protoShow = Class.create({
 	},
 	
 	/**
-	 * SETUPTRANSITION
+	 * setupTransitions
 	 * @param  {string/function} transType name of transition function or custom transition function
 	 * @description chooses the correct transition method. Will be deprecated and removed.
 	 */
@@ -343,7 +333,7 @@ var protoShow = Class.create({
 	},
 
 	/**
-	 * SETUPCONTROLS
+	 * setupControls
 	 * @description one time setup of controls for the show
 	 */
 	setupControls: function() {
@@ -413,7 +403,7 @@ var protoShow = Class.create({
 	},
 
 	/**
-	 * SETUPNAVIGATION
+	 * setupNavigation
 	 * @description One time setup of navigation for the show
 	 */
 	setupNavigation: function() {
@@ -459,7 +449,7 @@ var protoShow = Class.create({
 	},
 
 	/**
-	 * UPDATE NAVIGATION
+	 * updateNavigation
 	 * @param  {integar} current ID corresponding to the current slide
 	 * @param  {integar} next ID corresponding to the next slide
 	 * @description Updates the "active" classes on the navigation elements
