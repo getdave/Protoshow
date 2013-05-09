@@ -215,10 +215,11 @@ var protoShow = Class.create({
 	},
 
 	gotoSlide: function(slide,transTime) {
+		transTime = (typeof(transTime)!='undefined'||transTime==0) ? (transTime) : this.manTransitionTime;
 		if (slide === this.currentSlideID) {
 			return false;
-		}
-		this.goMaster( slide, this.manTransitionTime );	
+		}		
+		this.goMaster( slide, transTime );	
 		
 		if (this.options.progressBarOption) {
 			this.resetProgressBar();
@@ -241,7 +242,7 @@ var protoShow = Class.create({
 		}
 
 		// Set the transistion speed to transTime arg (if set) else fallback to standard transitionTime
-		var transTime = (transTime) ? transTime : _this.transitionTime;
+		var transTime = (typeof(transTime)!='undefined'||transTime==0) ? transTime : _this.transitionTime;
 
 		this.toggleAnimating(true);		
 		this.setNextIndex(next);  // set this.nextSlideID correctly		
@@ -308,17 +309,21 @@ var protoShow = Class.create({
 		var _this = this;			
 		
 		var leftPos = this.slideWidth * this.nextSlideID; 
-		
-		
-		new Effect.Morph(_this.showEle, {
-			style: {
-				left: -leftPos + 'px'
-			}, 
-			duration	: opts.transitionTime,
-			afterFinish	: function() {
-				return opts.transitionFinish();
-			}
-		});
+
+		if(opts.transitionTime == 0){			
+			_this.showEle.setStyle({'left': -leftPos + 'px'});
+			return opts.transitionFinish();
+		}else{
+			new Effect.Morph(_this.showEle, {
+				style: {
+					left: -leftPos + 'px'
+				}, 
+				duration	: opts.transitionTime,
+				afterFinish	: function() {
+					return opts.transitionFinish();
+				}
+			});
+		}
 	},
 
 	cycle: function(current,next,opts) {
@@ -506,7 +511,12 @@ var protoShow = Class.create({
 			handlingClick = true;
 		
 			var index = element.hash.substr(1,2);	// get the slide ID from the href hash (eg: #3)
-			_this.gotoSlide(index-1);
+
+			if(_this.options.transitionType == 'cycle'){
+				_this.gotoSlide(index-1, 0);
+			}else{
+				_this.gotoSlide(index-1);
+			}
 			
 			/*remove the "lock" variable*/
 			handlingClick = false;
@@ -693,10 +703,15 @@ var protoShow = Class.create({
 			slidesContainer.insertBefore(slideToMove, otherSlides[otherSlides.length-1].nextSibling);
 			this.slides.push(slideToMove);
 			if (typeof this.protoNavigation !== "undefined" ) {
-				var navList = this.protoNavigation.select('li');
-				var navToMove = navList[navList.length-1];
-				navToMove.remove();
-				this.protoNavigation.insertBefore(navToMove, navList[0]);
+				var navList = this.protoNavigation.select('li');				
+				var navTarget = Number(navList[navList.length-1].down('a').readAttribute('href').replace('#',''));
+				navList.each(function(elem){
+					elem.down('a').writeAttribute('href','#'+navTarget);
+					navTarget++;
+					if(navTarget > navList.length){
+						navTarget = 1;
+					}
+				});
 			}
 		}else{
 			var slidesContainer = slideToMove.parentNode; 
@@ -706,9 +721,14 @@ var protoShow = Class.create({
 			this.slides.unshift(slideToMove);
 			if (typeof this.protoNavigation !== "undefined" ) {
 				var navList = this.protoNavigation.select('li');
-				var navToMove = navList[0];
-				navToMove.remove();
-				this.protoNavigation.insertBefore(navToMove, navList[navList.length-1].nextSibling);
+				var navTarget = Number(navList[1].down('a').readAttribute('href').replace('#',''));
+				navList.each(function(elem){
+					elem.down('a').writeAttribute('href','#'+navTarget);
+					navTarget++;
+					if(navTarget > navList.length){
+						navTarget = 1;
+					}
+				});
 			}
 		}
 	},
