@@ -1,5 +1,5 @@
 /*  ProtoShow JavaScript slide show, 
- *	v 0.9 (beta) - 24/02/12
+ *	v 0.9.mod (beta) - 10/05/13
  *  Copyright(c) 2012 David Smith (web: http://www.aheadcreative.com; twitter: @get_dave)
  *
  *  This work is licenced under the Creative Commons Attribution-No Derivative Works 3.0 Unported License. 
@@ -8,6 +8,13 @@
  *	For more information on this project visit:
  * 	http://www.protoshow.net
  *	http://www.deepbluesky.com
+ *
+ *  NOTE: This is a modified version of ProtoShow 0.9. It was customized to support cyclic slide behavior.
+ *  The original author David Smith granted permission to use this modified version for commercial purposes to 
+ *  the author who made these modifications, Stefan Winkler (https://github.com/Sigma-90) and to his current 
+ *  employer Codingpeople GmbH (http://www.codingpeople.com). For anyone else who would like to be able to use 
+ *  this version for a project, please contact David Smith and ask for his permission. Or just wait a few weeks,
+ *  a git pull request has already been filed to incorporate these modifications into the original ProtoShow.
  *
  *--------------------------------------------------------------------------*/
 
@@ -215,7 +222,7 @@ var protoShow = Class.create({
 	},
 
 	gotoSlide: function(slide,transTime) {
-		transTime = (typeof(transTime)!='undefined'||transTime==0) ? (transTime) : this.manTransitionTime;
+		transTime = (typeof(transTime)!='undefined') ? (transTime) : this.manTransitionTime;
 		if (slide === this.currentSlideID) {
 			return false;
 		}		
@@ -242,7 +249,7 @@ var protoShow = Class.create({
 		}
 
 		// Set the transistion speed to transTime arg (if set) else fallback to standard transitionTime
-		var transTime = (typeof(transTime)!='undefined'||transTime==0) ? transTime : _this.transitionTime;
+		var transTime = (typeof(transTime)!='undefined') ? transTime : _this.transitionTime;
 
 		this.toggleAnimating(true);		
 		this.setNextIndex(next);  // set this.nextSlideID correctly		
