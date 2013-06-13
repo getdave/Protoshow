@@ -89,7 +89,9 @@ var protoShow = Class.create({
 		this.setupTimer();
 
 		// let's get things going!				
-		this.play();
+		if (this.autoPlay) {				
+			this.play();
+		}
 	},
 
 
