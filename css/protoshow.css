@@ -47,19 +47,19 @@
 /* TRANSITION SLIDE
 ------------------------------------------------*/
 
-.transition-slide .show-window {
+.transition-slide .show-window, .transition-cycle .show-window {
 	overflow: hidden;
 	position: relative;
 }
 
-.transition-slide .show {
+.transition-slide .show, .transition-cycle .show {
 	position: absolute;
 	top: 0;
 	left: 0;
 	width: 999999px;
 }
 
-.transition-slide .slide {
+.transition-slide .slide, .transition-cycle .slide {
 	position: static; /*overide*/
 	float: left;
 	display: block;
