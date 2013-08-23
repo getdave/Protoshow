@@ -34,7 +34,7 @@ var protoShow = Class.create({
 			mode				: "forward",
 			autoPlay			: true,
 			autoRestart			: true,
-			transitionType		: "fade",
+			transitionType		: "cycle",
 			transitionTime		: 1.5,
 			manTransitionTime	: 0.5,		
 			navigation			: true,
@@ -96,15 +96,6 @@ var protoShow = Class.create({
 			    interval: 0.15  
 			}); 
 		}		
-		
-
-		if (this.options.resizeMobile) {
-			hammertime = Hammer(document.getElementById("slideImageGradient2"));
-		} else {
-			hammertime = Hammer(document.getElementById("slideImageGradient"));
-		}	
-		
-		
 
 		//run some initial setup
 		this.setupTransitions(this.options.transitionType);
@@ -652,17 +643,7 @@ var protoShow = Class.create({
 				_this.previous();
 			}
 		});	
-		 
-		  
-		hammertime.on("dragleft dragright", function(ev) {
-	        if (ev.type=='dragright'){
-	        	_this.previous();
-	        }
-	        if (ev.type=='dragleft'){
-	        	_this.next();
-	        }	 
-	    });	
-				
+			
 	},
 
 	
